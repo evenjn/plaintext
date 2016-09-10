@@ -1,0 +1,2 @@
+This is the first line 🃏 of a UTF-8 TXT file.
+This is the second line 🃏 of a UTF-8 TXT file.
