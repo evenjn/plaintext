@@ -97,12 +97,16 @@ public class Unicode {
 	public static LineWriter writer(Charset cs) {
 		return new LineWriter( cs );
 	}
-	
-	public static  Consumer<String> write( Hook hook, OutputStream input, Charset cs) {
+
+	public static Consumer<String> write( Hook hook, OutputStream os ) {
+		return write(hook, os, Charset.forName( "UTF-8" ));
+	}
+	public static Consumer<String> write( Hook hook, OutputStream os,
+			Charset cs ) {
 		CharsetEncoder encoder = cs.newEncoder( );
-		Writer writer = hook.hook( new OutputStreamWriter( input, encoder) );
+		Writer writer = hook.hook( new OutputStreamWriter( os, encoder ) );
 		BufferedWriter buffered_writer =
-				hook.hook( new BufferedWriter( writer) );
+				hook.hook( new BufferedWriter( writer ) );
 		return new Consumer<String>( ) {
 
 			@Override
@@ -118,16 +122,17 @@ public class Unicode {
 		};
 	}
 
-	public static  KnittingItterator<String> read( Hook hook, InputStream input) {
-		return KnittingItterator.wrap(read(hook, input, Charset.forName( "UTF-8" )).iterator( ));
+	public static KnittingItterator<String> read( Hook hook, InputStream input ) {
+		return KnittingItterator
+				.wrap( read( hook, input, Charset.forName( "UTF-8" ) ).iterator( ) );
 	}
-	
-	public static  Stream<String> read( Hook hook, InputStream input, Charset cs) {
+
+	public static Stream<String> read( Hook hook, InputStream input, Charset cs ) {
 		CharsetDecoder decoder = cs.newDecoder( );
 		Reader reader = hook.hook( new InputStreamReader( input, decoder ) );
 		BufferedReader buffered_reader =
 				hook.hook( new BufferedReader( reader ) );
-		Stream<String> stream = hook.hook( buffered_reader.lines() );
+		Stream<String> stream = hook.hook( buffered_reader.lines( ) );
 		return stream;
 	}
 
@@ -166,7 +171,7 @@ public class Unicode {
 		return codepoints( form == null ? s : Normalizer.normalize( s, form ) );
 	}
 
-	public static int[] codepointsArray( String input, Form form  ) {
+	public static int[] codepointsArray( String input, Form form ) {
 		KnittingItterable<Integer> codepoints = codepoints( input, form );
 		long count = codepoints.size( );
 		int size = 0;
@@ -201,7 +206,7 @@ public class Unicode {
 		return sb.toString( );
 	}
 
-	public static String codepointsToString( int... codepoints ) {
+	public static String codepointsToString( int ... codepoints ) {
 		StringBuilder sb = new StringBuilder( );
 		for ( int codePoint : codepoints ) {
 			char[] chars = Character.toChars( codePoint );
@@ -219,7 +224,8 @@ public class Unicode {
 		return sb.toString( );
 	}
 
-	public static String codepointsIterableToString( Iterable<? extends Integer> codepoints ) {
+	public static String codepointsIterableToString(
+			Iterable<? extends Integer> codepoints ) {
 		StringBuilder sb = new StringBuilder( );
 		for ( int codePoint : codepoints ) {
 			char[] chars = Character.toChars( codePoint );

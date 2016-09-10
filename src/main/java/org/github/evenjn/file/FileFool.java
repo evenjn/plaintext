@@ -131,7 +131,7 @@ public class FileFool {
 				.write( hook );
 	}
 
-	public static KnittingCursor<Path> find( Path directory, String glob_pattern ) {
+	public KnittingCursor<Path> find( Path directory, String glob_pattern ) {
 		ArrayList<Path> collected = new ArrayList<>( );
 		PathMatcher matcher =
 				FileSystems.getDefault( ).getPathMatcher( "glob:" + glob_pattern );
