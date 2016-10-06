@@ -29,6 +29,8 @@ import java.io.Writer;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.Normalizer;
 import java.text.Normalizer.Form;
 import java.util.Iterator;
@@ -38,6 +40,8 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import org.github.evenjn.file.FileFool;
+import org.github.evenjn.knit.KnittingCursor;
 import org.github.evenjn.knit.KnittingItterable;
 import org.github.evenjn.knit.KnittingItterator;
 import org.github.evenjn.knit.KnittingTuple;
@@ -82,6 +86,28 @@ class LineReader implements CursorUnfoldH<InputStream, String> {
 
 public class Unicode {
 
+	static public KnittingCursor<String> read( Hook hook, String file ) {
+		Path path = Paths.get( file );
+		InputStream is = FileFool.nu( ).open( path ).read( hook );
+		return KnittingCursor.wrap( Unicode.read( hook, is ) );
+	}
+
+	static public Consumer<String> write( Hook hook, String file, boolean erase ) {
+		Path path = Paths.get( file );
+		FileFool ff = FileFool.nu( );
+		if ( ff.exists( path ) ) {
+			if ( erase ) {
+				ff.delete( path );
+			}
+			else {
+				throw new IllegalStateException( "File exists: [" + file + "]" );
+			}
+		}
+		ff.create( ff.mold( path ) );
+		OutputStream os = ff.open( path ).write( hook );
+		return Unicode.write( hook, os );
+	}
+	
 	public static LineReader reader() {
 		return new LineReader( Charset.forName( "UTF-8" ) );
 	}
