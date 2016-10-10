@@ -56,15 +56,23 @@ import org.github.evenjn.yarn.StreamMapH;
 class LineWriter implements
 		FunctionH<OutputStream, Consumer<String>> {
 
-	final Charset cs;
+	private Charset cs = Charset.forName( "UTF-8" );
+	private String delimiter = null;
 
-	LineWriter(Charset cs) {
+	
+	public LineWriter setCharset(Charset cs) {
 		this.cs = cs;
+		return this;
+	}
+
+	public LineWriter setDelimiter(String delimiter) {
+		this.delimiter = delimiter;
+		return this;
 	}
 
 	@Override
 	public Consumer<String> get( Hook hook, OutputStream output_stream ) {
-		return Unicode.write( hook, output_stream, cs );
+		return Unicode.write_3( hook, output_stream, cs, delimiter );
 	}
 
 }
@@ -86,13 +94,32 @@ class LineReader implements CursorUnfoldH<InputStream, String> {
 
 public class Unicode {
 
+	@Deprecated
 	static public KnittingCursor<String> read( Hook hook, String file ) {
+		return fileRead( hook, file );
+	}
+	
+	static public KnittingCursor<String> fileRead( Hook hook, String file ) {
 		Path path = Paths.get( file );
 		InputStream is = FileFool.nu( ).open( path ).read( hook );
 		return KnittingCursor.wrap( Unicode.read( hook, is ) );
 	}
 
+	static public Consumer<String> fileWrite( Hook hook, String file, boolean erase ) {
+		return write_2(hook, file, erase, Charset.forName( "UTF-8" ), "\n");
+	}
+
+	@Deprecated
 	static public Consumer<String> write( Hook hook, String file, boolean erase ) {
+		return write_2( hook, file, erase, Charset.forName( "UTF-8" ), null );
+	}
+	
+	static Consumer<String> write_2(
+			Hook hook,
+			String file,
+			boolean erase,
+			Charset cs,
+			String delimiter) {
 		Path path = Paths.get( file );
 		FileFool ff = FileFool.nu( );
 		if ( ff.exists( path ) ) {
@@ -105,7 +132,7 @@ public class Unicode {
 		}
 		ff.create( ff.mold( path ) );
 		OutputStream os = ff.open( path ).write( hook );
-		return Unicode.write( hook, os );
+		return Unicode.writer( ).setCharset( cs ).setDelimiter( delimiter ).get( hook, os );
 	}
 	
 	public static LineReader reader() {
@@ -117,18 +144,50 @@ public class Unicode {
 	}
 
 	public static LineWriter writer() {
-		return new LineWriter( Charset.forName( "UTF-8" ) );
+		return new LineWriter( );
 	}
 	
+	/**
+	 * Use writer().setCharset( cs ) instead.
+	 */
+	@Deprecated
 	public static LineWriter writer(Charset cs) {
-		return new LineWriter( cs );
+		return new LineWriter( ).setCharset( cs );
 	}
 
-	public static Consumer<String> write( Hook hook, OutputStream os ) {
-		return write(hook, os, Charset.forName( "UTF-8" ));
+	/**
+	 * Use writer().setCharset( cs ).setDelimiter( delimiter ) instead.
+	 */
+	@Deprecated
+	public static LineWriter writer(Charset cs, String delimiter) {
+		return new LineWriter( ).setCharset( cs ).setDelimiter( delimiter );
 	}
-	public static Consumer<String> write( Hook hook, OutputStream os,
-			Charset cs ) {
+
+
+	/**
+	 * Use writer().setCharset( cs ).setDelimiter( delimiter ).get( hook ) instead.
+	 */
+	@Deprecated
+	public static Consumer<String> write( Hook hook, OutputStream os ) {
+		return write_3(hook, os, Charset.forName( "UTF-8" ), null);
+	}
+
+	/**
+	 * Use writer().setCharset( cs ).get( hook ) instead.
+	 */
+	@Deprecated
+	public static Consumer<String> write(
+			Hook hook,
+			OutputStream os,
+			Charset cs) {
+		return write_3(hook, os, cs, null);
+	}
+
+	static Consumer<String> write_3(
+			Hook hook,
+			OutputStream os,
+			Charset cs,
+			String delimiter ) {
 		CharsetEncoder encoder = cs.newEncoder( );
 		Writer writer = hook.hook( new OutputStreamWriter( os, encoder ) );
 		BufferedWriter buffered_writer =
@@ -139,6 +198,9 @@ public class Unicode {
 			public void accept( String t ) {
 				try {
 					buffered_writer.append( t );
+					if ( delimiter != null ) {
+						buffered_writer.append( delimiter );
+					}
 					buffered_writer.flush( );
 				}
 				catch ( IOException e ) {
@@ -260,16 +322,24 @@ public class Unicode {
 		return sb.toString( );
 	}
 
-	public static KnittingTuple<Integer> codepointsFequence( String s ) {
-		return codepointsFequence( s, null );
+	public static KnittingTuple<Integer> codepointsTuple( String s ) {
+		return codepointsTuple( s, null );
 	}
 
-	public static KnittingTuple<Integer> codepointsFequence( String s, Form form ) {
+	public static KnittingTuple<Integer> codepointsTuple( String s, Form form ) {
 		Vector<Integer> v = new Vector<Integer>( );
 		for ( Integer i : codepoints( s, form ).once( ) ) {
 			v.add( i );
 		}
 		return KnittingTuple.wrap( v );
+	}
+
+	public static String aboutCodepoint( Integer cp ) {
+		StringBuilder sb = new StringBuilder( );
+			char[] chars = Character.toChars( cp );
+			sb.append( asUnicodeHex( cp ) );
+			sb.append( " " ).append( chars );
+		return sb.toString( );
 	}
 
 	public static String inspectCodepoints( String s ) {
