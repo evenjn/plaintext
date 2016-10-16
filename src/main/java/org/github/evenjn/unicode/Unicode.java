@@ -41,85 +41,43 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.github.evenjn.file.FileFool;
+import org.github.evenjn.knit.KnittingCursable;
 import org.github.evenjn.knit.KnittingCursor;
 import org.github.evenjn.knit.KnittingItterable;
 import org.github.evenjn.knit.KnittingItterator;
 import org.github.evenjn.knit.KnittingTuple;
 import org.github.evenjn.knit.Suppressor;
 import org.github.evenjn.yarn.ArrayMap;
-import org.github.evenjn.yarn.CursorUnfoldH;
-import org.github.evenjn.yarn.FunctionH;
 import org.github.evenjn.yarn.Hook;
-import org.github.evenjn.yarn.Itterator;
 import org.github.evenjn.yarn.StreamMapH;
-
-class LineWriter implements
-		FunctionH<OutputStream, Consumer<String>> {
-
-	private Charset cs = Charset.forName( "UTF-8" );
-	private String delimiter = null;
-
-	
-	public LineWriter setCharset(Charset cs) {
-		this.cs = cs;
-		return this;
-	}
-
-	public LineWriter setDelimiter(String delimiter) {
-		this.delimiter = delimiter;
-		return this;
-	}
-
-	@Override
-	public Consumer<String> get( Hook hook, OutputStream output_stream ) {
-		return Unicode.write_3( hook, output_stream, cs, delimiter );
-	}
-
-}
-
-class LineReader implements CursorUnfoldH<InputStream, String> {
-
-	final Charset cs;
-
-	LineReader(Charset cs) {
-		this.cs = cs;
-	}
-
-
-	@Override
-	public Itterator<String> next( Hook hook, InputStream input ) {
-		return KnittingItterator.wrap( Unicode.read( hook, input, cs ).iterator( ) );
-	}
-}
 
 public class Unicode {
 
-	@Deprecated
-	static public KnittingCursor<String> read( Hook hook, String file ) {
-		return fileRead( hook, file );
-	}
-	
 	static public KnittingCursor<String> fileRead( Hook hook, String file ) {
 		Path path = Paths.get( file );
 		InputStream is = FileFool.nu( ).open( path ).read( hook );
 		return KnittingCursor.wrap( Unicode.read( hook, is ) );
 	}
 
-	static public Consumer<String> fileWrite( Hook hook, String file, boolean erase ) {
-		return write_2(hook, file, erase, Charset.forName( "UTF-8" ), "\n");
+	static public KnittingCursable<String> fileRead( String file ) {
+		return KnittingCursable.wrap(
+				hook ->
+				Unicode.read(
+						hook,
+						FileFool.nu( ).open( Paths.get( file ) ).read( hook ) ) );
 	}
 
-	@Deprecated
-	static public Consumer<String> write( Hook hook, String file, boolean erase ) {
-		return write_2( hook, file, erase, Charset.forName( "UTF-8" ), null );
+	static public Consumer<String> fileWrite( Hook hook, String file,
+			boolean erase ) {
+		return write_2( hook, file, erase, Charset.forName( "UTF-8" ), "\n" );
 	}
-	
+
 	static Consumer<String> write_2(
 			Hook hook,
 			String file,
 			boolean erase,
 			Charset cs,
-			String delimiter) {
+			String delimiter ) {
 		Path path = Paths.get( file );
 		FileFool ff = FileFool.nu( );
 		if ( ff.exists( path ) ) {
@@ -132,55 +90,16 @@ public class Unicode {
 		}
 		ff.create( ff.mold( path ) );
 		OutputStream os = ff.open( path ).write( hook );
-		return Unicode.writer( ).setCharset( cs ).setDelimiter( delimiter ).get( hook, os );
-	}
-	
-	public static LineReader reader() {
-		return new LineReader( Charset.forName( "UTF-8" ) );
-	}
-	
-	public static LineReader reader(Charset cs) {
-		return new LineReader( cs );
+		return Unicode.writer( ).setCharset( cs ).setDelimiter( delimiter )
+				.get( hook, os );
 	}
 
-	public static LineWriter writer() {
+	public static LineReader reader( ) {
+		return new LineReader( );
+	}
+
+	public static LineWriter writer( ) {
 		return new LineWriter( );
-	}
-	
-	/**
-	 * Use writer().setCharset( cs ) instead.
-	 */
-	@Deprecated
-	public static LineWriter writer(Charset cs) {
-		return new LineWriter( ).setCharset( cs );
-	}
-
-	/**
-	 * Use writer().setCharset( cs ).setDelimiter( delimiter ) instead.
-	 */
-	@Deprecated
-	public static LineWriter writer(Charset cs, String delimiter) {
-		return new LineWriter( ).setCharset( cs ).setDelimiter( delimiter );
-	}
-
-
-	/**
-	 * Use writer().setCharset( cs ).setDelimiter( delimiter ).get( hook ) instead.
-	 */
-	@Deprecated
-	public static Consumer<String> write( Hook hook, OutputStream os ) {
-		return write_3(hook, os, Charset.forName( "UTF-8" ), null);
-	}
-
-	/**
-	 * Use writer().setCharset( cs ).get( hook ) instead.
-	 */
-	@Deprecated
-	public static Consumer<String> write(
-			Hook hook,
-			OutputStream os,
-			Charset cs) {
-		return write_3(hook, os, cs, null);
 	}
 
 	static Consumer<String> write_3(
@@ -336,9 +255,9 @@ public class Unicode {
 
 	public static String aboutCodepoint( Integer cp ) {
 		StringBuilder sb = new StringBuilder( );
-			char[] chars = Character.toChars( cp );
-			sb.append( asUnicodeHex( cp ) );
-			sb.append( " " ).append( chars );
+		char[] chars = Character.toChars( cp );
+		sb.append( asUnicodeHex( cp ) );
+		sb.append( " " ).append( chars );
 		return sb.toString( );
 	}
 
