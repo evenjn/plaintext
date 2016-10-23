@@ -37,6 +37,7 @@ import java.util.Iterator;
 import java.util.Vector;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -106,7 +107,8 @@ public class Unicode {
 			Hook hook,
 			OutputStream os,
 			Charset cs,
-			String delimiter ) {
+			String delimiter,
+			boolean force_flush ) {
 		CharsetEncoder encoder = cs.newEncoder( );
 		Writer writer = hook.hook( new OutputStreamWriter( os, encoder ) );
 		BufferedWriter buffered_writer =
@@ -120,7 +122,9 @@ public class Unicode {
 					if ( delimiter != null ) {
 						buffered_writer.append( delimiter );
 					}
-					buffered_writer.flush( );
+					if ( force_flush ) {
+						buffered_writer.flush( );
+					}
 				}
 				catch ( IOException e ) {
 					throw Suppressor.quit( e );
@@ -262,12 +266,20 @@ public class Unicode {
 	}
 
 	public static String inspectCodepoints( String s ) {
+		if ( s.isEmpty( ) ) {
+			return "the empty string";
+		}
 		KnittingItterable<Integer> codepoints = codepoints( s );
+
 		StringBuilder sb = new StringBuilder( );
+		sb.append( codepoints.size( ) );
+		sb.append( " " );
+		sb.append( s );
+		sb.append( " " );
 		String separator = "";
 		for ( Integer cp : codepoints.once( ) ) {
 			char[] chars = Character.toChars( cp );
-			sb.append( separator ).append( asUnicodeHex( cp ) );
+			sb.append( separator ).append( "U+" ).append( asUnicodeHex( cp ) );
 			sb.append( " " ).append( chars );
 			separator = " ";
 		}
@@ -305,11 +317,11 @@ public class Unicode {
 
 	}
 
-	public static Function<String, Boolean> matcher( Pattern pattern ) {
-		return new Function<String, Boolean>( ) {
+	public static Predicate<String> matcher( Pattern pattern ) {
+		return new Predicate<String>( ) {
 
 			@Override
-			public Boolean apply( String object ) {
+			public boolean test( String object ) {
 				return pattern.matcher( object ).matches( );
 			}
 		};

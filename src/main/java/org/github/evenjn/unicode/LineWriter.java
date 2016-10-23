@@ -29,7 +29,9 @@ public class LineWriter implements
 
 	private Charset cs = Charset.forName( "UTF-8" );
 
-	private String delimiter = null;
+	private String delimiter = "\n";
+
+	private boolean force_flush = true;
 
 	public LineWriter setCharset( Charset cs ) {
 		this.cs = cs;
@@ -41,9 +43,14 @@ public class LineWriter implements
 		return this;
 	}
 
+	public LineWriter setForcedFlush( boolean force_flush ) {
+		this.force_flush = force_flush;
+		return this;
+	}
+
 	@Override
 	public Consumer<String> get( Hook hook, OutputStream output_stream ) {
-		return Unicode.write_3( hook, output_stream, cs, delimiter );
+		return Unicode.write_3( hook, output_stream, cs, delimiter, force_flush );
 	}
 
 }
