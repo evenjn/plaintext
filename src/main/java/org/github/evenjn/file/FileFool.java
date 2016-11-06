@@ -26,9 +26,8 @@ import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
+import java.util.LinkedList;
 
-import org.github.evenjn.knit.KnittingCursor;
 import org.github.evenjn.knit.Suppressor;
 import org.github.evenjn.yarn.Hook;
 
@@ -131,8 +130,8 @@ public class FileFool {
 				.write( hook );
 	}
 
-	public KnittingCursor<Path> find( Path directory, String glob_pattern ) {
-		ArrayList<Path> collected = new ArrayList<>( );
+	public Iterable<Path> find( Path directory, String glob_pattern ) {
+		LinkedList<Path> collected = new LinkedList<>( );
 		PathMatcher matcher =
 				FileSystems.getDefault( ).getPathMatcher( "glob:" + glob_pattern );
 		SimpleFileVisitor<Path> finder = new SimpleFileVisitor<Path>( ) {
@@ -160,6 +159,6 @@ public class FileFool {
 		catch ( IOException e ) {
 			throw Suppressor.quit( e );
 		}
-		return KnittingCursor.wrap( collected );
+		return collected;
 	}
 }

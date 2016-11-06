@@ -15,7 +15,7 @@
  * limitations under the License.
  * 
  */
-package org.github.evenjn.inputstream;
+package org.github.evenjn.plaintext;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -25,17 +25,15 @@ import java.util.function.Consumer;
 import org.github.evenjn.knit.BasicAutoHook;
 import org.github.evenjn.knit.KnittingCursor;
 import org.github.evenjn.knit.Suppressor;
-import org.github.evenjn.unicode.Unicode;
 import org.github.evenjn.yarn.AutoHook;
 
-public class Rocess {
+public class PlainTextProcess {
 
 	public static boolean run(
 			Path workingDirectory,
 			ProcessBuilder process_builder,
 			int timeout_minutes )
-			throws
-			IOException,
+			throws IOException,
 			InterruptedException {
 		return run(
 				workingDirectory,
@@ -54,8 +52,7 @@ public class Rocess {
 					Consumer<String> out_putter,
 					Consumer<String> err_putter,
 					int timeout_minutes )
-					throws
-					IOException,
+					throws IOException,
 					InterruptedException {
 
 		try ( AutoHook hook = new BasicAutoHook( ) ) {
@@ -70,6 +67,7 @@ public class Rocess {
 					System.out.println( cl + " \\" );
 				System.out.println( "\n\n" );
 			}
+
 			Process process = process_builder.start( );
 
 			final String[] bell = {};
@@ -82,7 +80,8 @@ public class Rocess {
 							try ( AutoHook hook = new BasicAutoHook( ) ) {
 								for ( String s : KnittingCursor
 										.on( process.getErrorStream( ) )
-										.unfoldCursor( hook, Unicode.reader( ) ).once( ) ) {
+										.flatmapStream( hook, PlainText.reader( ) )
+										.once( ) ) {
 									synchronized ( bell ) {
 										err_putter.accept( s );
 									}
@@ -103,13 +102,13 @@ public class Rocess {
 						try {
 							try ( AutoHook hook = new BasicAutoHook( ) ) {
 								for ( String s : KnittingCursor
-										.on( process.getErrorStream( ) )
-										.unfoldCursor( hook, Unicode.reader( ) ).once( ) ) {
+										.on( process.getInputStream( ) )
+										.flatmapStream( hook, PlainText.reader( ) )
+										.once( ) ) {
 									synchronized ( bell ) {
 										out_putter.accept( s );
 									}
 								}
-
 							}
 						}
 						catch ( Throwable t ) {
@@ -134,13 +133,11 @@ public class Rocess {
 					}
 					if ( process.isAlive( ) ) {
 						System.out.println( "Failed to kill the process." );
-					}
-					else {
+					} else {
 						System.out.println( "Successfully killed the process." );
 					}
 					return false;
-				}
-				else {
+				} else {
 					thread1.join( );
 					thread2.join( );
 					int exitvalue = process.exitValue( );
@@ -156,20 +153,16 @@ public class Rocess {
 			}
 
 		}
-		finally {
-			// System.out.println( "Finally!" );
-		}
 	}
 
-	public static Consumer<String> standardOutput( boolean insert_newline ) {
+	private static Consumer<String> standardOutput( boolean insert_newline ) {
 		return new Consumer<String>( ) {
 
 			@Override
 			public void accept( String value ) {
 				if ( insert_newline ) {
 					System.out.println( value );
-				}
-				else {
+				} else {
 					System.out.print( value );
 				}
 				System.out.flush( );
@@ -177,15 +170,14 @@ public class Rocess {
 		};
 	}
 
-	public static Consumer<String> standardError( boolean insert_newline ) {
+	private static Consumer<String> standardError( boolean insert_newline ) {
 		return new Consumer<String>( ) {
 
 			@Override
 			public void accept( String value ) {
 				if ( insert_newline ) {
 					System.err.println( value );
-				}
-				else {
+				} else {
 					System.err.print( value );
 				}
 				System.err.flush( );

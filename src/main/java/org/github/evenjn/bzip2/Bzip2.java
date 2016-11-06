@@ -15,28 +15,25 @@
  * limitations under the License.
  * 
  */
-package org.github.evenjn.unicode;
+package org.github.evenjn.bzip2;
 
+import java.io.BufferedInputStream;
+import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.Charset;
 
-import org.github.evenjn.knit.KnittingItterator;
-import org.github.evenjn.yarn.CursorUnfoldH;
+import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
+import org.github.evenjn.knit.Suppressor;
 import org.github.evenjn.yarn.Hook;
-import org.github.evenjn.yarn.Itterator;
 
-public class LineReader implements
-		CursorUnfoldH<InputStream, String> {
+public class Bzip2 {
 
-	private Charset cs = Charset.forName( "UTF-8" );
-
-	public LineReader setCharset( Charset cs ) {
-		this.cs = cs;
-		return this;
-	}
-
-	@Override
-	public Itterator<String> next( Hook hook, InputStream input ) {
-		return KnittingItterator.wrap( Unicode.read( hook, input, cs ).iterator( ) );
+	public static InputStream decode( Hook hook, InputStream stream ) {
+		try {
+			return hook.hook( new BZip2CompressorInputStream(
+					hook.hook( new BufferedInputStream( stream ) ) ) );
+		}
+		catch ( IOException e ) {
+			throw Suppressor.quit( e );
+		}
 	}
 }

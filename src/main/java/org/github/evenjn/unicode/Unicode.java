@@ -17,149 +17,70 @@
  */
 package org.github.evenjn.unicode;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Reader;
-import java.io.Writer;
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetDecoder;
-import java.nio.charset.CharsetEncoder;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.Normalizer;
 import java.text.Normalizer.Form;
 import java.util.Iterator;
 import java.util.Vector;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
-import org.github.evenjn.file.FileFool;
-import org.github.evenjn.knit.KnittingCursable;
 import org.github.evenjn.knit.KnittingCursor;
-import org.github.evenjn.knit.KnittingItterable;
-import org.github.evenjn.knit.KnittingItterator;
 import org.github.evenjn.knit.KnittingTuple;
-import org.github.evenjn.knit.Suppressor;
 import org.github.evenjn.yarn.ArrayMap;
-import org.github.evenjn.yarn.Hook;
-import org.github.evenjn.yarn.StreamMapH;
+import org.github.evenjn.yarn.Cursor;
+import org.github.evenjn.yarn.CursorUnfold;
+import org.github.evenjn.yarn.PastTheEndException;
+import org.github.evenjn.yarn.Tuple;
 
 public class Unicode {
 
-	static public KnittingCursor<String> fileRead( Hook hook, String file ) {
-		Path path = Paths.get( file );
-		InputStream is = FileFool.nu( ).open( path ).read( hook );
-		return KnittingCursor.wrap( Unicode.read( hook, is ) );
-	}
-
-	static public KnittingCursable<String> fileRead( String file ) {
-		return KnittingCursable.wrap(
-				hook ->
-				Unicode.read(
-						hook,
-						FileFool.nu( ).open( Paths.get( file ) ).read( hook ) ) );
-	}
-
-	static public Consumer<String> fileWrite( Hook hook, String file,
-			boolean erase ) {
-		return write_2( hook, file, erase, Charset.forName( "UTF-8" ), "\n" );
-	}
-
-	static Consumer<String> write_2(
-			Hook hook,
-			String file,
-			boolean erase,
-			Charset cs,
-			String delimiter ) {
-		Path path = Paths.get( file );
-		FileFool ff = FileFool.nu( );
-		if ( ff.exists( path ) ) {
-			if ( erase ) {
-				ff.delete( path );
-			}
-			else {
-				throw new IllegalStateException( "File exists: [" + file + "]" );
-			}
-		}
-		ff.create( ff.mold( path ) );
-		OutputStream os = ff.open( path ).write( hook );
-		return Unicode.writer( ).setCharset( cs ).setDelimiter( delimiter )
-				.get( hook, os );
-	}
-
-	public static LineReader reader( ) {
-		return new LineReader( );
-	}
-
-	public static LineWriter writer( ) {
-		return new LineWriter( );
-	}
-
-	static Consumer<String> write_3(
-			Hook hook,
-			OutputStream os,
-			Charset cs,
-			String delimiter,
-			boolean force_flush ) {
-		CharsetEncoder encoder = cs.newEncoder( );
-		Writer writer = hook.hook( new OutputStreamWriter( os, encoder ) );
-		BufferedWriter buffered_writer =
-				hook.hook( new BufferedWriter( writer ) );
-		return new Consumer<String>( ) {
+	public static CursorUnfold<String, String> extractor(
+			Pattern opening_delimiter,
+			Pattern closing_delimiter ) {
+		return new CursorUnfold<String, String>( ) {
 
 			@Override
-			public void accept( String t ) {
-				try {
-					buffered_writer.append( t );
-					if ( delimiter != null ) {
-						buffered_writer.append( delimiter );
+			public Cursor<String> next( String input ) {
+				final Matcher opening_delimiter_matcher =
+						opening_delimiter.matcher( input );
+				final Matcher closing_delimiter_matcher =
+						closing_delimiter.matcher( input );
+				return new Cursor<String>( ) {
+
+					private int frontier;
+
+					@Override
+					public String next( )
+							throws PastTheEndException {
+
+						boolean opening_delimiter_found =
+								opening_delimiter_matcher.find( frontier );
+						if ( !opening_delimiter_found )
+							throw PastTheEndException.neo;
+						int opening_delimiter_end = opening_delimiter_matcher.end( );
+						boolean closing_delimiter_found =
+								closing_delimiter_matcher.find( opening_delimiter_end );
+						if ( !closing_delimiter_found )
+							throw new IllegalArgumentException(
+									"found opening delimiter, but no closing delimiter." );
+						int closing_delimiter_start = closing_delimiter_matcher.start( );
+						frontier = closing_delimiter_matcher.end( );
+						return input.substring( opening_delimiter_end,
+								closing_delimiter_start );
 					}
-					if ( force_flush ) {
-						buffered_writer.flush( );
-					}
-				}
-				catch ( IOException e ) {
-					throw Suppressor.quit( e );
-				}
+
+				};
 			}
-		};
-	}
 
-	public static KnittingItterator<String> read( Hook hook, InputStream input ) {
-		return KnittingItterator
-				.wrap( read( hook, input, Charset.forName( "UTF-8" ) ).iterator( ) );
-	}
 
-	public static Stream<String> read( Hook hook, InputStream input, Charset cs ) {
-		CharsetDecoder decoder = cs.newDecoder( );
-		Reader reader = hook.hook( new InputStreamReader( input, decoder ) );
-		BufferedReader buffered_reader =
-				hook.hook( new BufferedReader( reader ) );
-		Stream<String> stream = hook.hook( buffered_reader.lines( ) );
-		return stream;
-	}
-
-	public static StreamMapH<InputStream, String> streamMapH( Charset cs ) {
-		return new StreamMapH<InputStream, String>( ) {
-
-			@Override
-			public Stream<String> get( Hook hook, InputStream input ) {
-				return read( hook, input, cs );
-			}
 		};
 	}
 
 	public static Integer codepoint( String s ) {
 		Integer result = null;
-		for ( Integer i : codepoints( s ).once( ) ) {
+		for ( Integer i : KnittingCursor.wrap(codepoints( s ).iterator( )).once( ) ) {
 			if ( result != null )
 				throw new IllegalArgumentException(
 						"The input string is realized using more than once codepoint." );
@@ -168,22 +89,22 @@ public class Unicode {
 		return result;
 	}
 
-	public static KnittingItterable<Integer> codepoints( String s ) {
-		return KnittingItterable.wrap( new Iterable<Integer>( ) {
+	public static Iterable<Integer> codepoints( String s ) {
+		return new Iterable<Integer>( ) {
 
 			@Override
 			public Iterator<Integer> iterator( ) {
 				return s.codePoints( ).boxed( ).iterator( );
 			}
-		} );
+		};
 	}
 
-	public static KnittingItterable<Integer> codepoints( String s, Form form ) {
+	public static Iterable<Integer> codepoints( String s, Form form ) {
 		return codepoints( form == null ? s : Normalizer.normalize( s, form ) );
 	}
 
 	public static int[] codepointsArray( String input, Form form ) {
-		KnittingItterable<Integer> codepoints = codepoints( input, form );
+		KnittingCursor<Integer> codepoints = KnittingCursor.wrap(codepoints( input, form ).iterator( ));
 		long count = codepoints.size( );
 		int size = 0;
 		if ( count < 0 || count > 9999 )
@@ -204,7 +125,7 @@ public class Unicode {
 
 	public static Vector<Integer> codepointsVector( String s, Form form ) {
 		Vector<Integer> v = new Vector<Integer>( );
-		for ( Integer i : codepoints( s, form ).once( ) ) {
+		for ( Integer i : codepoints( s, form ) ) {
 			v.add( i );
 		}
 		return v;
@@ -245,13 +166,13 @@ public class Unicode {
 		return sb.toString( );
 	}
 
-	public static KnittingTuple<Integer> codepointsTuple( String s ) {
+	public static Tuple<Integer> codepointsTuple( String s ) {
 		return codepointsTuple( s, null );
 	}
 
-	public static KnittingTuple<Integer> codepointsTuple( String s, Form form ) {
+	public static Tuple<Integer> codepointsTuple( String s, Form form ) {
 		Vector<Integer> v = new Vector<Integer>( );
-		for ( Integer i : codepoints( s, form ).once( ) ) {
+		for ( Integer i : codepoints( s, form ) ) {
 			v.add( i );
 		}
 		return KnittingTuple.wrap( v );
@@ -269,7 +190,7 @@ public class Unicode {
 		if ( s.isEmpty( ) ) {
 			return "the empty string";
 		}
-		KnittingItterable<Integer> codepoints = codepoints( s );
+		KnittingCursor<Integer> codepoints = KnittingCursor.wrap(codepoints( s ).iterator( ));
 
 		StringBuilder sb = new StringBuilder( );
 		sb.append( codepoints.size( ) );

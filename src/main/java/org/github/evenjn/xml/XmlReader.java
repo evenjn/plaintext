@@ -15,42 +15,31 @@
  * limitations under the License.
  * 
  */
-package org.github.evenjn.unicode;
+package org.github.evenjn.xml;
 
-import java.io.OutputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.Charset;
-import java.util.function.Consumer;
 
-import org.github.evenjn.yarn.FunctionH;
+import org.github.evenjn.knit.KnittingCursor;
+import org.github.evenjn.yarn.Cursor;
+import org.github.evenjn.yarn.CursorMapH;
 import org.github.evenjn.yarn.Hook;
 
-public class LineWriter implements
-		FunctionH<OutputStream, Consumer<String>> {
+public class XmlReader implements
+		CursorMapH<InputStream, SuppressedXmlStreamElement> {
 
 	private Charset cs = Charset.forName( "UTF-8" );
 
-	private String delimiter = "\n";
-
-	private boolean force_flush = true;
-
-	public LineWriter setCharset( Charset cs ) {
+	public XmlReader setCharset( Charset cs ) {
 		this.cs = cs;
 		return this;
 	}
 
-	public LineWriter setDelimiter( String delimiter ) {
-		this.delimiter = delimiter;
-		return this;
-	}
-
-	public LineWriter setForcedFlush( boolean force_flush ) {
-		this.force_flush = force_flush;
-		return this;
-	}
-
 	@Override
-	public Consumer<String> get( Hook hook, OutputStream output_stream ) {
-		return Unicode.write_3( hook, output_stream, cs, delimiter, force_flush );
+	public Cursor<SuppressedXmlStreamElement> get( Hook hook,
+			InputStream input ) {
+		InputStreamReader isr = hook.hook( new InputStreamReader( input, cs ) );
+		return KnittingCursor.wrap( new XmlCursor( isr ) );
 	}
-
 }
