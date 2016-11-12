@@ -20,13 +20,13 @@ package org.github.evenjn.plaintext;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.stream.Stream;
 
 import org.github.evenjn.bzip2.Bzip2;
 import org.github.evenjn.file.FileFool;
 import org.github.evenjn.knit.BasicAutoHook;
 import org.github.evenjn.knit.KnittingCursor;
 import org.github.evenjn.yarn.AutoHook;
+import org.github.evenjn.yarn.Cursor;
 
 public class do_read_plain_text_file {
 
@@ -34,7 +34,7 @@ public class do_read_plain_text_file {
 		try ( AutoHook hook = new BasicAutoHook( ) ) {
 			Path path = Paths.get( "./src/test/resources/test.txt" );
 			InputStream is = FileFool.nu( ).open( path ).read( hook );
-			Stream<String> stream = PlainText.reader( ).get( hook, is );
+			Cursor<String> stream = PlainText.reader( ).get( hook, is );
 			KnittingCursor.wrap( stream ).tap( System.out::println ).consume( );
 
 			path = Paths.get( "./src/test/resources/test.txt.bz2" );

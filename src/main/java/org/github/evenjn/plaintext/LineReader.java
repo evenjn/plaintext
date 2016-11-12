@@ -19,13 +19,13 @@ package org.github.evenjn.plaintext;
 
 import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.util.stream.Stream;
 
+import org.github.evenjn.yarn.Cursor;
+import org.github.evenjn.yarn.CursorMapH;
 import org.github.evenjn.yarn.Hook;
-import org.github.evenjn.yarn.StreamMapH;
 
 public class LineReader implements
-		StreamMapH<InputStream, String> {
+		CursorMapH<InputStream, String> {
 
 	private Charset cs = Charset.forName( "UTF-8" );
 
@@ -35,7 +35,7 @@ public class LineReader implements
 	}
 
 	@Override
-	public Stream<String> get( Hook hook, InputStream input ) {
+	public Cursor<String> get( Hook hook, InputStream input ) {
 		return PlainText.read( hook, input, cs );
 	}
 }

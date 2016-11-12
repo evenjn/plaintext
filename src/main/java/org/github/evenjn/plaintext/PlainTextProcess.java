@@ -80,7 +80,7 @@ public class PlainTextProcess {
 							try ( AutoHook hook = new BasicAutoHook( ) ) {
 								for ( String s : KnittingCursor
 										.on( process.getErrorStream( ) )
-										.flatmapStream( hook, PlainText.reader( ) )
+										.flatmapCursor( hook, PlainText.reader( ) )
 										.once( ) ) {
 									synchronized ( bell ) {
 										err_putter.accept( s );
@@ -103,7 +103,7 @@ public class PlainTextProcess {
 							try ( AutoHook hook = new BasicAutoHook( ) ) {
 								for ( String s : KnittingCursor
 										.on( process.getInputStream( ) )
-										.flatmapStream( hook, PlainText.reader( ) )
+										.flatmapCursor( hook, PlainText.reader( ) )
 										.once( ) ) {
 									synchronized ( bell ) {
 										out_putter.accept( s );

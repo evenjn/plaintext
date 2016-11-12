@@ -26,6 +26,7 @@ import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.github.evenjn.knit.KnittingCursable;
 import org.github.evenjn.knit.KnittingCursor;
 import org.github.evenjn.knit.KnittingTuple;
 import org.github.evenjn.yarn.ArrayMap;
@@ -104,15 +105,15 @@ public class Unicode {
 	}
 
 	public static int[] codepointsArray( String input, Form form ) {
-		KnittingCursor<Integer> codepoints = KnittingCursor.wrap(codepoints( input, form ).iterator( ));
-		long count = codepoints.size( );
+		Iterable<Integer> codepoints = codepoints( input, form );
+		long count =  KnittingCursable.wrap(codepoints).size( );
 		int size = 0;
 		if ( count < 0 || count > 9999 )
 			throw new IllegalArgumentException( );
 		size = (int) count;
 		int[] result = new int[size];
 		int i = 0;
-		for ( Integer cp : codepoints.once( ) ) {
+		for ( Integer cp : codepoints ) {
 			result[i++] = cp;
 		}
 		return result;
@@ -190,15 +191,15 @@ public class Unicode {
 		if ( s.isEmpty( ) ) {
 			return "the empty string";
 		}
-		KnittingCursor<Integer> codepoints = KnittingCursor.wrap(codepoints( s ).iterator( ));
+		Iterable<Integer> codepoints = codepoints( s );
 
 		StringBuilder sb = new StringBuilder( );
-		sb.append( codepoints.size( ) );
+		sb.append( KnittingCursor.wrap(codepoints( s )).size( ) );
 		sb.append( " " );
 		sb.append( s );
 		sb.append( " " );
 		String separator = "";
-		for ( Integer cp : codepoints.once( ) ) {
+		for ( Integer cp : codepoints ) {
 			char[] chars = Character.toChars( cp );
 			sb.append( separator ).append( "U+" ).append( asUnicodeHex( cp ) );
 			sb.append( " " ).append( chars );

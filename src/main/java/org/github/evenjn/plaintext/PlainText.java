@@ -27,12 +27,12 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.Charset;
-import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Scanner;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
+import java.util.regex.Pattern;
 
 import org.github.evenjn.file.FileFool;
 import org.github.evenjn.knit.KnittingCursable;
@@ -41,6 +41,7 @@ import org.github.evenjn.knit.Suppressor;
 import org.github.evenjn.yarn.Cursable;
 import org.github.evenjn.yarn.Cursor;
 import org.github.evenjn.yarn.Hook;
+import org.github.evenjn.yarn.PastTheEndException;
 
 public class PlainText {
 
@@ -58,7 +59,7 @@ public class PlainText {
 			@Override
 			public Cursor<String> pull( Hook hook ) {
 				InputStream is = FileFool.nu( ).open( Paths.get( file ) ).read( hook );
-				Stream<String> stream = read( hook, is, Charset.forName( "UTF-8" ) );
+				Cursor<String> stream = read( hook, is, Charset.forName( "UTF-8" ) );
 				return KnittingCursor.wrap( stream );
 			}
 		};
@@ -113,13 +114,42 @@ public class PlainText {
 		};
 	}
 
-	static Stream<String> read( Hook hook, InputStream input, Charset cs ) {
-		CharsetDecoder decoder = cs.newDecoder( );
-		Reader reader = hook.hook( new InputStreamReader( input, decoder ) );
+	private static final Pattern delimiter_pattern = Pattern.compile( "[\\x0D]?[\\x0A]" );
+	
+	static Cursor<String> read( Hook hook, InputStream input, Charset cs ) {
+		Reader reader = hook.hook( new InputStreamReader( input, cs ) );
 		BufferedReader buffered_reader =
 				hook.hook( new BufferedReader( reader ) );
-		Stream<String> stream = hook.hook( buffered_reader.lines( ) );
-		return stream;
+		
+		Scanner scanner = hook.hook(new Scanner(buffered_reader));
+		scanner.useDelimiter( delimiter_pattern );
+		return new Cursor<String>( ) {
+			
+			@Override
+			public String next( )
+					throws PastTheEndException {
+				for ( ;; ) {
+					try {
+						boolean hasNext = scanner.hasNext( );
+						if ( scanner.ioException( ) != null ) {
+							throw scanner.ioException( );
+						}
+						if ( hasNext ) {
+
+							String next = scanner.next( );
+							if ( scanner.ioException( ) != null ) {
+								throw scanner.ioException( );
+							}
+							return next;
+						}
+						throw PastTheEndException.neo;
+					}
+					catch ( IOException e ) {
+						throw Suppressor.quit( e );
+					}
+				}
+			}
+		};
 	}
 
 }
