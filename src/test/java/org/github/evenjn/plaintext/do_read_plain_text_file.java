@@ -34,13 +34,13 @@ public class do_read_plain_text_file {
 		try ( AutoHook hook = new BasicAutoHook( ) ) {
 			Path path = Paths.get( "./src/test/resources/test.txt" );
 			InputStream is = FileFool.nu( ).open( path ).read( hook );
-			Cursor<String> stream = PlainText.reader( ).get( hook, is );
+			Cursor<String> stream = PlainText.reader( ).build( ).get( hook, is );
 			KnittingCursor.wrap( stream ).tap( System.out::println ).consume( );
 
 			path = Paths.get( "./src/test/resources/test.txt.bz2" );
 			is = FileFool.nu( ).open( path ).read( hook );
-			is = Bzip2.decode( hook, is );
-			stream = PlainText.reader( ).get( hook, is );
+			is = Bzip2.decoder( ).build( ).get( hook, is );
+			stream = PlainText.reader( ).build( ).get( hook, is );
 			KnittingCursor.wrap( stream ).tap( System.out::println ).consume( );
 		}
 	}

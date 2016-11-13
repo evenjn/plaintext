@@ -100,7 +100,8 @@ public class FileFool {
 						Suppressor.ask( e );
 					}
 					return FileVisitResult.CONTINUE;
-				} else {
+				}
+				else {
 					throw Suppressor.quit( exc );
 				}
 			}

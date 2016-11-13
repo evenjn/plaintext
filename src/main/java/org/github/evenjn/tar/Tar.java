@@ -15,27 +15,11 @@
  * limitations under the License.
  * 
  */
-package org.github.evenjn.plaintext;
+package org.github.evenjn.tar;
 
-import java.io.InputStream;
-import java.nio.charset.Charset;
+public class Tar {
 
-import org.github.evenjn.yarn.Cursor;
-import org.github.evenjn.yarn.CursorMapH;
-import org.github.evenjn.yarn.Hook;
-
-public class LineReader implements
-		CursorMapH<InputStream, String> {
-
-	private Charset cs = Charset.forName( "UTF-8" );
-
-	public LineReader setCharset( Charset cs ) {
-		this.cs = cs;
-		return this;
-	}
-
-	@Override
-	public Cursor<String> get( Hook hook, InputStream input ) {
-		return PlainText.read( hook, input, cs );
+	public static TarDecoderBlueprint decoder( ) {
+		return new TarDecoderBlueprint( );
 	}
 }

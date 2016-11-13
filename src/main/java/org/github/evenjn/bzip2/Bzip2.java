@@ -17,23 +17,9 @@
  */
 package org.github.evenjn.bzip2;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
-import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
-import org.github.evenjn.knit.Suppressor;
-import org.github.evenjn.yarn.Hook;
-
 public class Bzip2 {
 
-	public static InputStream decode( Hook hook, InputStream stream ) {
-		try {
-			return hook.hook( new BZip2CompressorInputStream(
-					hook.hook( new BufferedInputStream( stream ) ) ) );
-		}
-		catch ( IOException e ) {
-			throw Suppressor.quit( e );
-		}
+	public static Bzip2DecoderBlueprint decoder( ) {
+		return new Bzip2DecoderBlueprint( );
 	}
 }

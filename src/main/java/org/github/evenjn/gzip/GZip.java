@@ -17,35 +17,9 @@
  */
 package org.github.evenjn.gzip;
 
-import java.io.InputStream;
-
-import org.apache.commons.compress.compressors.CompressorException;
-import org.apache.commons.compress.compressors.CompressorInputStream;
-import org.apache.commons.compress.compressors.CompressorStreamFactory;
-import org.github.evenjn.knit.Suppressor;
-import org.github.evenjn.yarn.Hook;
-
 public class GZip {
 
-	public static InputStream decode( Hook hook, InputStream is ) {
-		try {
-			/**
-			 * This never throws, it's not closeable.
-			 */
-			CompressorStreamFactory compressorStreamFactory =
-					new CompressorStreamFactory( );
-
-			/**
-			 * This may throw. The result is autocloseable.
-			 */
-			CompressorInputStream createCompressorInputStream =
-					compressorStreamFactory
-							.createCompressorInputStream( CompressorStreamFactory.GZIP, is );
-
-			return hook.hook( createCompressorInputStream );
-		}
-		catch ( CompressorException e ) {
-			throw Suppressor.quit( e );
-		}
+	public static GZipDecoderBlueprint decoder( ) {
+		return new GZipDecoderBlueprint( );
 	}
 }

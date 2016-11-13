@@ -80,7 +80,7 @@ public class PlainTextProcess {
 							try ( AutoHook hook = new BasicAutoHook( ) ) {
 								for ( String s : KnittingCursor
 										.on( process.getErrorStream( ) )
-										.flatmapCursor( hook, PlainText.reader( ) )
+										.flatmapCursor( hook, PlainText.reader( ).build( ) )
 										.once( ) ) {
 									synchronized ( bell ) {
 										err_putter.accept( s );
@@ -103,7 +103,7 @@ public class PlainTextProcess {
 							try ( AutoHook hook = new BasicAutoHook( ) ) {
 								for ( String s : KnittingCursor
 										.on( process.getInputStream( ) )
-										.flatmapCursor( hook, PlainText.reader( ) )
+										.flatmapCursor( hook, PlainText.reader( ).build( ) )
 										.once( ) ) {
 									synchronized ( bell ) {
 										out_putter.accept( s );
@@ -133,11 +133,13 @@ public class PlainTextProcess {
 					}
 					if ( process.isAlive( ) ) {
 						System.out.println( "Failed to kill the process." );
-					} else {
+					}
+					else {
 						System.out.println( "Successfully killed the process." );
 					}
 					return false;
-				} else {
+				}
+				else {
 					thread1.join( );
 					thread2.join( );
 					int exitvalue = process.exitValue( );
@@ -162,7 +164,8 @@ public class PlainTextProcess {
 			public void accept( String value ) {
 				if ( insert_newline ) {
 					System.out.println( value );
-				} else {
+				}
+				else {
 					System.out.print( value );
 				}
 				System.out.flush( );
@@ -177,7 +180,8 @@ public class PlainTextProcess {
 			public void accept( String value ) {
 				if ( insert_newline ) {
 					System.err.println( value );
-				} else {
+				}
+				else {
 					System.err.print( value );
 				}
 				System.err.flush( );
