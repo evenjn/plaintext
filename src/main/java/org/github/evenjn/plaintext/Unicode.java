@@ -15,7 +15,7 @@
  * limitations under the License.
  * 
  */
-package org.github.evenjn.unicode;
+package org.github.evenjn.plaintext;
 
 import java.text.Normalizer;
 import java.text.Normalizer.Form;
