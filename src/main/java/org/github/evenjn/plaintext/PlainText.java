@@ -43,8 +43,8 @@ public class PlainText {
 		return new LineReaderBlueprint( );
 	}
 
-	public static LineWriter writer( ) {
-		return new LineWriter( );
+	public static LineWriterBlueprint writer( ) {
+		return new LineWriterBlueprint( );
 	}
 
 	static public Cursable<String> fileRead( String file ) {

@@ -24,8 +24,23 @@ import java.util.function.Consumer;
 import org.github.evenjn.yarn.FunctionH;
 import org.github.evenjn.yarn.Hook;
 
-public class LineWriter implements
-		FunctionH<OutputStream, Consumer<String>> {
+public class LineWriterBlueprint {
+	
+	public FunctionH<OutputStream, Consumer<String>> build( ) {
+		final Charset local_cs = cs;
+		final String local_delimiter = delimiter;
+		final boolean local_force_flush = force_flush;
+		FunctionH<OutputStream, Consumer<String>> result =
+				new FunctionH<OutputStream, Consumer<String>>( ) {
+
+					@Override
+					public Consumer<String> get( Hook hook, OutputStream output_stream ) {
+						return PlainText.write( hook, output_stream, local_cs,
+								local_delimiter, local_force_flush );
+					}
+				};
+		return result;
+	}
 
 	private Charset cs = Charset.forName( "UTF-8" );
 
@@ -33,24 +48,20 @@ public class LineWriter implements
 
 	private boolean force_flush = true;
 
-	public LineWriter setCharset( Charset cs ) {
+	public LineWriterBlueprint setCharset( Charset cs ) {
 		this.cs = cs;
 		return this;
 	}
 
-	public LineWriter setDelimiter( String delimiter ) {
+	public LineWriterBlueprint setDelimiter( String delimiter ) {
 		this.delimiter = delimiter;
 		return this;
 	}
 
-	public LineWriter setForcedFlush( boolean force_flush ) {
+	public LineWriterBlueprint setForcedFlush( boolean force_flush ) {
 		this.force_flush = force_flush;
 		return this;
 	}
 
-	@Override
-	public Consumer<String> get( Hook hook, OutputStream output_stream ) {
-		return PlainText.write( hook, output_stream, cs, delimiter, force_flush );
-	}
 
 }

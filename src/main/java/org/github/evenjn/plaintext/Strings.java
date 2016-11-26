@@ -29,6 +29,18 @@ import org.github.evenjn.yarn.PastTheEndException;
 
 public class Strings {
 
+	public static String zeropad( int length, int value ) {
+		if ( length < 1 || length > 30 ) {
+			throw new IllegalArgumentException(
+					"Length must be at least 1 and at most 30." );
+		}
+		String result =
+				"000000000000000000000000000000" + Integer.toString( value );
+		result = result.substring( result.length( ) - length );
+		return result;
+
+	}
+
 	public static String pad( String s, int to ) {
 		StringBuilder sb = new StringBuilder( );
 		sb.append( s );
