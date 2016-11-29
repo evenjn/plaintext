@@ -21,7 +21,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 
-import org.github.evenjn.knit.KnittingCursor;
 import org.github.evenjn.yarn.Cursor;
 import org.github.evenjn.yarn.CursorMapH;
 import org.github.evenjn.yarn.Hook;
@@ -40,6 +39,6 @@ public class XmlReader implements
 	public Cursor<SuppressedXmlStreamElement> get( Hook hook,
 			InputStream input ) {
 		InputStreamReader isr = hook.hook( new InputStreamReader( input, cs ) );
-		return KnittingCursor.wrap( new XmlCursor( isr ) );
+		return new XmlCursor( isr );
 	}
 }

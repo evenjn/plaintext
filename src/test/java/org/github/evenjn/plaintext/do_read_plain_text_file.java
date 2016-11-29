@@ -23,10 +23,9 @@ import java.nio.file.Paths;
 
 import org.github.evenjn.bzip2.Bzip2;
 import org.github.evenjn.file.FileFool;
-import org.github.evenjn.knit.BasicAutoHook;
-import org.github.evenjn.knit.KnittingCursor;
 import org.github.evenjn.yarn.AutoHook;
 import org.github.evenjn.yarn.Cursor;
+import org.github.evenjn.yarn.PastTheEndException;
 
 public class do_read_plain_text_file {
 
@@ -35,13 +34,27 @@ public class do_read_plain_text_file {
 			Path path = Paths.get( "./src/test/resources/test.txt" );
 			InputStream is = FileFool.nu( ).open( path ).read( hook );
 			Cursor<String> stream = PlainText.reader( ).build( ).get( hook, is );
-			KnittingCursor.wrap( stream ).tap( System.out::println ).consume( );
+			for ( ;; ) {
+				try {
+					System.out.println( stream.next( ) );
+				}
+				catch ( PastTheEndException e ) {
+					break;
+				}
+			}
 
 			path = Paths.get( "./src/test/resources/test.txt.bz2" );
 			is = FileFool.nu( ).open( path ).read( hook );
 			is = Bzip2.decoder( ).build( ).get( hook, is );
 			stream = PlainText.reader( ).build( ).get( hook, is );
-			KnittingCursor.wrap( stream ).tap( System.out::println ).consume( );
+			for ( ;; ) {
+				try {
+					System.out.println( stream.next( ) );
+				}
+				catch ( PastTheEndException e ) {
+					break;
+				}
+			}
 		}
 	}
 }

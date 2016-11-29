@@ -22,9 +22,6 @@ import java.text.Normalizer.Form;
 import java.util.Iterator;
 import java.util.Vector;
 
-import org.github.evenjn.knit.KnittingCursable;
-import org.github.evenjn.knit.KnittingCursor;
-import org.github.evenjn.knit.KnittingTuple;
 import org.github.evenjn.yarn.Tuple;
 
 public class Unicode {
@@ -50,13 +47,21 @@ public class Unicode {
 		};
 	}
 
+	private static long size( Iterable<?> iterable ) {
+		long result = 0;
+		for ( Iterator<?> i = iterable.iterator( ); i.hasNext( ); i.next( ) ) {
+			result++;
+		}
+		return result;
+	}
+
 	public static Iterable<Integer> codepoints( String s, Form form ) {
 		return codepoints( form == null ? s : Normalizer.normalize( s, form ) );
 	}
 
 	public static int[] codepointsArray( String input, Form form ) {
 		Iterable<Integer> codepoints = codepoints( input, form );
-		long count = KnittingCursable.wrap( codepoints ).size( );
+		long count = size( codepoints );
 		int size = 0;
 		if ( count < 0 || count > 9999 )
 			throw new IllegalArgumentException( );
@@ -74,7 +79,18 @@ public class Unicode {
 		for ( Integer i : codepoints( s, form ) ) {
 			v.add( i );
 		}
-		return KnittingTuple.wrap( v );
+		return new Tuple<Integer>( ) {
+
+			@Override
+			public int size( ) {
+				return v.size( );
+			}
+
+			@Override
+			public Integer get( int index ) {
+				return v.get( index );
+			}
+		};
 	}
 
 	public static Vector<Integer> codepointsVector( String s, Form form ) {
@@ -108,6 +124,7 @@ public class Unicode {
 		char[] chars = Character.toChars( cp );
 		sb.append( asUnicodeHex( cp ) );
 		sb.append( " " ).append( chars );
+		sb.append( " " ).append( Character.getName( cp ) );
 		return sb.toString( );
 	}
 
@@ -118,7 +135,7 @@ public class Unicode {
 		Iterable<Integer> codepoints = codepoints( s );
 
 		StringBuilder sb = new StringBuilder( );
-		sb.append( KnittingCursor.wrap( codepoints( s ) ).size( ) );
+		sb.append( size( codepoints( s ) ) );
 		sb.append( " " );
 		sb.append( s );
 		sb.append( " " );

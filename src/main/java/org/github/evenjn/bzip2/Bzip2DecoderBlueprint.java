@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
-import org.github.evenjn.knit.Suppressor;
 import org.github.evenjn.yarn.FunctionH;
 import org.github.evenjn.yarn.Hook;
 
@@ -38,7 +37,7 @@ public class Bzip2DecoderBlueprint {
 					hook.hook( new BufferedInputStream( stream ) ) ) );
 		}
 		catch ( IOException e ) {
-			throw Suppressor.quit( e );
+			throw new RuntimeException( e );
 		}
 	}
 }

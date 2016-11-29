@@ -22,7 +22,6 @@ import java.io.Reader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 
-import org.github.evenjn.knit.Suppressor;
 import org.github.evenjn.yarn.Cursor;
 import org.github.evenjn.yarn.PastTheEndException;
 
@@ -38,7 +37,7 @@ class XmlCursor implements
 					factory.createXMLStreamReader( reader ) );
 		}
 		catch ( XMLStreamException e ) {
-			throw Suppressor.quit( e );
+			throw new RuntimeException( e );
 		}
 	}
 

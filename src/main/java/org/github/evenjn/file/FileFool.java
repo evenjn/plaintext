@@ -28,7 +28,6 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.LinkedList;
 
-import org.github.evenjn.knit.Suppressor;
 import org.github.evenjn.yarn.Hook;
 
 public class FileFool {
@@ -59,7 +58,7 @@ public class FileFool {
 			}
 		}
 		catch ( IOException e ) {
-			throw Suppressor.quit( e );
+			throw new RuntimeException( e );
 		}
 		return param.path;
 	}
@@ -74,7 +73,7 @@ public class FileFool {
 					Files.delete( file );
 				}
 				catch ( IOException e ) {
-					Suppressor.ask( e );
+					new RuntimeException( e );
 				}
 				return FileVisitResult.CONTINUE;
 			}
@@ -85,7 +84,7 @@ public class FileFool {
 					Files.delete( file );
 				}
 				catch ( IOException e ) {
-					Suppressor.ask( e );
+					new RuntimeException( e );
 				}
 				return FileVisitResult.CONTINUE;
 			}
@@ -97,12 +96,12 @@ public class FileFool {
 						Files.delete( dir );
 					}
 					catch ( IOException e ) {
-						Suppressor.ask( e );
+						new RuntimeException( e );
 					}
 					return FileVisitResult.CONTINUE;
 				}
 				else {
-					throw Suppressor.quit( exc );
+					throw new RuntimeException( exc );
 				}
 			}
 		};
@@ -111,7 +110,7 @@ public class FileFool {
 			Files.walkFileTree( path, simpleFileVisitor );
 		}
 		catch ( IOException e ) {
-			throw Suppressor.quit( e );
+			throw new RuntimeException( e );
 		}
 	}
 
@@ -151,14 +150,14 @@ public class FileFool {
 			@Override
 			public FileVisitResult visitFileFailed( Path file,
 					IOException exc ) {
-				throw Suppressor.quit( exc );
+				throw new RuntimeException( exc );
 			}
 		};
 		try {
 			Files.walkFileTree( directory, finder );
 		}
 		catch ( IOException e ) {
-			throw Suppressor.quit( e );
+			throw new RuntimeException( e );
 		}
 		return collected;
 	}

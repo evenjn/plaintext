@@ -21,21 +21,23 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
-import org.github.evenjn.knit.BasicAutoHook;
-import org.github.evenjn.knit.KnittingCursor;
-import org.github.evenjn.knit.Suppressor;
 import org.github.evenjn.yarn.AutoHook;
+import org.github.evenjn.yarn.Cursor;
+import org.github.evenjn.yarn.PastTheEndException;
 
 public class PlainTextProcess {
 
 	public static boolean run(
+			Supplier<AutoHook> hf,
 			Path workingDirectory,
 			ProcessBuilder process_builder,
 			int timeout_minutes )
 			throws IOException,
 			InterruptedException {
 		return run(
+				hf,
 				workingDirectory,
 				process_builder,
 				standardOutput( true ),
@@ -45,115 +47,110 @@ public class PlainTextProcess {
 
 	public static boolean print_debug = true;
 
-	public static boolean
-			run(
-					Path workingDirectory,
-					ProcessBuilder process_builder,
-					Consumer<String> out_putter,
-					Consumer<String> err_putter,
-					int timeout_minutes )
-					throws IOException,
-					InterruptedException {
+	public static boolean run(
+			Supplier<AutoHook> hf,
+			Path workingDirectory,
+			ProcessBuilder process_builder,
+			Consumer<String> out_putter,
+			Consumer<String> err_putter,
+			int timeout_minutes )
+			throws IOException, InterruptedException {
 
-		try ( AutoHook hook = new BasicAutoHook( ) ) {
+		process_builder.directory( workingDirectory.toFile( ) );
+		if ( print_debug ) {
+			System.out.println( "In working directory:\n\n" );
+			System.out.println( workingDirectory.toString( ) );
+			System.out.println( "\n" );
+			System.out.println( "command:\n\n" );
+			for ( String cl : process_builder.command( ) )
+				System.out.println( cl + " \\" );
+			System.out.println( "\n\n" );
+		}
 
-			process_builder.directory( workingDirectory.toFile( ) );
+		Process process = process_builder.start( );
+		final String[] bell = {};
+
+		Thread thread1 = new Thread( new Runnable( ) {
+
+			@Override
+			public void run( ) {
+				try ( AutoHook hook = hf.get( ) ) {
+					Cursor<String> cursor = PlainText.reader( ).build( ).get( hook,
+							process.getErrorStream( ) );
+
+					for ( ;; ) {
+						try {
+							synchronized ( bell ) {
+								err_putter.accept( cursor.next( ) );
+							}
+						}
+						catch ( PastTheEndException e ) {
+							break;
+						}
+					}
+				}
+				catch ( Throwable t ) {
+					t.printStackTrace( System.err );
+				}
+			}
+		} );
+
+		Thread thread2 = new Thread( new Runnable( ) {
+
+			@Override
+			public void run( ) {
+				try ( AutoHook hook = hf.get( ) ) {
+					Cursor<String> cursor = PlainText.reader( ).build( ).get( hook,
+							process.getInputStream( ) );
+
+					for ( ;; ) {
+						try {
+							synchronized ( bell ) {
+								out_putter.accept( cursor.next( ) );
+							}
+						}
+						catch ( PastTheEndException e ) {
+							break;
+						}
+					}
+				}
+				catch ( Throwable t ) {
+					t.printStackTrace( System.err );
+				}
+			}
+		} );
+
+		thread2.start( );
+		thread1.start( );
+		boolean terminated =
+				process.waitFor( timeout_minutes, TimeUnit.MINUTES );
+
+		if ( !terminated ) {
+			thread1.interrupt( );
+			thread2.interrupt( );
+			System.out.println( "Timeout! Trying to kill the process.." );
+			process.destroy( );
+			Thread.sleep( 2000 );
+			if ( process.isAlive( ) ) {
+				process.destroyForcibly( );
+				Thread.sleep( 2000 );
+			}
+			if ( process.isAlive( ) ) {
+				System.out.println( "Failed to kill the process." );
+			}
+			else {
+				System.out.println( "Successfully killed the process." );
+			}
+			return false;
+		}
+		else {
+			thread1.join( );
+			thread2.join( );
+			int exitvalue = process.exitValue( );
 			if ( print_debug ) {
-				System.out.println( "In working directory:\n\n" );
-				System.out.println( workingDirectory.toString( ) );
-				System.out.println( "\n" );
-				System.out.println( "command:\n\n" );
-				for ( String cl : process_builder.command( ) )
-					System.out.println( cl + " \\" );
-				System.out.println( "\n\n" );
+				System.out.println( "result is .. " + exitvalue );
 			}
-
-			Process process = process_builder.start( );
-
-			final String[] bell = {};
-			try {
-				Thread thread1 = new Thread( new Runnable( ) {
-
-					@Override
-					public void run( ) {
-						try {
-							try ( AutoHook hook = new BasicAutoHook( ) ) {
-								for ( String s : KnittingCursor
-										.on( process.getErrorStream( ) )
-										.flatmapCursor( hook, PlainText.reader( ).build( ) )
-										.once( ) ) {
-									synchronized ( bell ) {
-										err_putter.accept( s );
-									}
-								}
-
-							}
-						}
-						catch ( Throwable t ) {
-							Suppressor.log( t );
-						}
-					}
-				} );
-
-				Thread thread2 = new Thread( new Runnable( ) {
-
-					@Override
-					public void run( ) {
-						try {
-							try ( AutoHook hook = new BasicAutoHook( ) ) {
-								for ( String s : KnittingCursor
-										.on( process.getInputStream( ) )
-										.flatmapCursor( hook, PlainText.reader( ).build( ) )
-										.once( ) ) {
-									synchronized ( bell ) {
-										out_putter.accept( s );
-									}
-								}
-							}
-						}
-						catch ( Throwable t ) {
-							Suppressor.log( t );
-						}
-					}
-				} );
-				thread2.start( );
-				thread1.start( );
-				boolean terminated =
-						process.waitFor( timeout_minutes, TimeUnit.MINUTES );
-
-				if ( !terminated ) {
-					thread1.interrupt( );
-					thread2.interrupt( );
-					System.out.println( "Timeout! Trying to kill the process.." );
-					process.destroy( );
-					Thread.sleep( 2000 );
-					if ( process.isAlive( ) ) {
-						process.destroyForcibly( );
-						Thread.sleep( 2000 );
-					}
-					if ( process.isAlive( ) ) {
-						System.out.println( "Failed to kill the process." );
-					}
-					else {
-						System.out.println( "Successfully killed the process." );
-					}
-					return false;
-				}
-				else {
-					thread1.join( );
-					thread2.join( );
-					int exitvalue = process.exitValue( );
-					if ( print_debug ) {
-						System.out.println( "result is .. " + exitvalue );
-					}
-					return exitvalue == 0;
-				}
-			}
-			catch ( InterruptedException e ) {
-				System.out.println( "Interrupted by user!" );
-				throw e;
-			}
-
+			return exitvalue == 0;
 		}
 	}
 

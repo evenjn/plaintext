@@ -30,9 +30,6 @@ import java.nio.file.Paths;
 import java.util.function.Consumer;
 
 import org.github.evenjn.file.FileFool;
-import org.github.evenjn.knit.KnittingCursable;
-import org.github.evenjn.knit.KnittingCursor;
-import org.github.evenjn.knit.Suppressor;
 import org.github.evenjn.yarn.Cursable;
 import org.github.evenjn.yarn.Cursor;
 import org.github.evenjn.yarn.Hook;
@@ -58,10 +55,10 @@ public class PlainText {
 						.setCharset( Charset.forName( "UTF-8" ) )
 						.build( )
 						.get( hook, is );
-				return KnittingCursor.wrap( cursor );
+				return cursor ;
 			}
 		};
-		return KnittingCursable.wrap( cursable );
+		return cursable;
 	}
 
 	static public Consumer<String> fileWrite( Hook hook, String file ) {
@@ -107,7 +104,7 @@ public class PlainText {
 					}
 				}
 				catch ( IOException e ) {
-					throw Suppressor.quit( e );
+					throw new RuntimeException( e );
 				}
 			}
 		};

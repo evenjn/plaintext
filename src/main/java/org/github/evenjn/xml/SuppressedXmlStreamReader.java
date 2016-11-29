@@ -24,8 +24,6 @@ import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
-import org.github.evenjn.knit.Suppressor;
-
 public class SuppressedXmlStreamReader implements
 		XMLStreamReader,
 		SuppressedXmlStreamElement {
@@ -48,7 +46,7 @@ public class SuppressedXmlStreamReader implements
 			return wrapped.next( );
 		}
 		catch ( XMLStreamException e ) {
-			throw Suppressor.quit( e );
+			throw new RuntimeException( e );
 		}
 	}
 
@@ -58,7 +56,7 @@ public class SuppressedXmlStreamReader implements
 			wrapped.require( type, namespaceURI, localName );
 		}
 		catch ( XMLStreamException e ) {
-			throw Suppressor.quit( e );
+			throw new RuntimeException( e );
 		}
 
 	}
@@ -69,7 +67,7 @@ public class SuppressedXmlStreamReader implements
 			return wrapped.getElementText( );
 		}
 		catch ( XMLStreamException e ) {
-			throw Suppressor.quit( e );
+			throw new RuntimeException( e );
 		}
 	}
 
@@ -79,7 +77,7 @@ public class SuppressedXmlStreamReader implements
 			return wrapped.nextTag( );
 		}
 		catch ( XMLStreamException e ) {
-			throw Suppressor.quit( e );
+			throw new RuntimeException( e );
 		}
 	}
 
@@ -89,7 +87,7 @@ public class SuppressedXmlStreamReader implements
 			return wrapped.hasNext( );
 		}
 		catch ( XMLStreamException e ) {
-			throw Suppressor.quit( e );
+			throw new RuntimeException( e );
 		}
 	}
 
@@ -99,7 +97,7 @@ public class SuppressedXmlStreamReader implements
 			wrapped.close( );
 		}
 		catch ( XMLStreamException e ) {
-			throw Suppressor.quit( e );
+			throw new RuntimeException( e );
 		}
 	}
 
@@ -253,7 +251,7 @@ public class SuppressedXmlStreamReader implements
 					length );
 		}
 		catch ( XMLStreamException e ) {
-			throw Suppressor.quit( e );
+			throw new RuntimeException( e );
 		}
 	}
 

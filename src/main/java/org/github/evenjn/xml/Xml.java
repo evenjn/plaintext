@@ -22,7 +22,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import org.github.evenjn.file.FileFool;
-import org.github.evenjn.knit.KnittingCursor;
 import org.github.evenjn.yarn.Cursable;
 import org.github.evenjn.yarn.Cursor;
 import org.github.evenjn.yarn.Hook;
@@ -40,7 +39,7 @@ public class Xml {
 			@Override
 			public Cursor<SuppressedXmlStreamElement> pull( Hook hook ) {
 				InputStream is = FileFool.nu( ).open( path ).read( hook );
-				return KnittingCursor.wrap( new XmlReader( ).get( hook, is ) );
+				return new XmlReader( ).get( hook, is );
 			}
 		};
 	}

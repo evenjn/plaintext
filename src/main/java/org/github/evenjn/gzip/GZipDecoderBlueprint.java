@@ -22,7 +22,6 @@ import java.io.InputStream;
 import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.commons.compress.compressors.CompressorInputStream;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
-import org.github.evenjn.knit.Suppressor;
 import org.github.evenjn.yarn.FunctionH;
 import org.github.evenjn.yarn.Hook;
 
@@ -50,7 +49,7 @@ public class GZipDecoderBlueprint {
 			return hook.hook( createCompressorInputStream );
 		}
 		catch ( CompressorException e ) {
-			throw Suppressor.quit( e );
+			throw new RuntimeException( e );
 		}
 	}
 }

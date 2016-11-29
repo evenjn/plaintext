@@ -7,8 +7,6 @@ import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.github.evenjn.knit.Bi;
-import org.github.evenjn.knit.Suppressor;
 import org.github.evenjn.yarn.Cursor;
 import org.github.evenjn.yarn.CursorMapH;
 import org.github.evenjn.yarn.Di;
@@ -25,28 +23,38 @@ public class TarDecoderBlueprint {
 			Hook hook,
 			InputStream is ) {
 		try {
+			
 			final TarArchiveInputStream tis =
 					(TarArchiveInputStream) new ArchiveStreamFactory( )
 							.createArchiveInputStream( "tar", is );
 
-			Cursor<Di<TarArchiveEntry, InputStream>> result =
-					new Cursor<Di<TarArchiveEntry, InputStream>>( ) {
+			return new Cursor<Di<TarArchiveEntry, InputStream>>( ) {
+
+				@Override
+				public Di<TarArchiveEntry, InputStream> next( )
+						throws PastTheEndException {
+					return new Di<TarArchiveEntry, InputStream>( ) {
 
 						@Override
-						public Di<TarArchiveEntry, InputStream> next( )
-								throws PastTheEndException {
+						public TarArchiveEntry front( ) {
 							try {
-								return Bi.nu( (TarArchiveEntry) tis.getNextEntry( ), tis );
+								return (TarArchiveEntry) tis.getNextEntry( );
 							}
 							catch ( IOException t ) {
-								throw Suppressor.quit( t );
+								throw new RuntimeException( t );
 							}
 						}
+
+						@Override
+						public InputStream back( ) {
+							return tis;
+						};
 					};
-			return result;
+				}
+			};
 		}
 		catch ( ArchiveException t ) {
-			throw Suppressor.quit( t );
+			throw new RuntimeException( t );
 		}
 	}
 }

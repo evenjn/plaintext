@@ -22,8 +22,6 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.github.evenjn.knit.Compare;
-
 public class StringWithNumberComparator implements
 		Comparator<String> {
 
@@ -54,9 +52,20 @@ public class StringWithNumberComparator implements
 		return i1;
 	}
 
+	private static Optional<Integer> compareNullFirst( Object o1, Object o2 ) {
+		if ( o1 == null ) {
+			if ( o2 == null )
+				return Optional.of( 0 );
+			return Optional.of( Integer.valueOf( -1 ) );
+		}
+		if ( o2 == null )
+			return Optional.of( Integer.valueOf( 1 ) );
+		return Optional.empty( );
+	}
+
 	@Override
 	public int compare( String o1, String o2 ) {
-		Optional<Integer> compareNullFirst = Compare.compareNullFirst( o1, o2 );
+		Optional<Integer> compareNullFirst = compareNullFirst( o1, o2 );
 		if ( compareNullFirst.isPresent( ) ) {
 			return compareNullFirst.get( );
 		}

@@ -23,7 +23,6 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import org.github.evenjn.knit.Suppressor;
 import org.github.evenjn.yarn.Hook;
 
 public class FileFoolElement {
@@ -39,7 +38,7 @@ public class FileFoolElement {
 			return hook.hook( Files.newInputStream( path ) );
 		}
 		catch ( IOException e ) {
-			throw Suppressor.quit( e );
+			throw new RuntimeException( e );
 		}
 	}
 
@@ -48,7 +47,7 @@ public class FileFoolElement {
 			return hook.hook( Files.newOutputStream( path ) );
 		}
 		catch ( IOException e ) {
-			throw Suppressor.quit( e );
+			throw new RuntimeException( e );
 		}
 	}
 }
