@@ -80,8 +80,9 @@ public class PlainTextProcess {
 
 					for ( ;; ) {
 						try {
+							String next = cursor.next( );
 							synchronized ( bell ) {
-								err_putter.accept( cursor.next( ) );
+								err_putter.accept( next );
 							}
 						}
 						catch ( PastTheEndException e ) {
@@ -105,8 +106,9 @@ public class PlainTextProcess {
 
 					for ( ;; ) {
 						try {
+							String next = cursor.next( );
 							synchronized ( bell ) {
-								out_putter.accept( cursor.next( ) );
+								out_putter.accept( next );
 							}
 						}
 						catch ( PastTheEndException e ) {

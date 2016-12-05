@@ -9,17 +9,21 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.github.evenjn.yarn.Cursor;
 import org.github.evenjn.yarn.CursorMapH;
-import org.github.evenjn.yarn.Di;
 import org.github.evenjn.yarn.Hook;
 import org.github.evenjn.yarn.PastTheEndException;
 
 public class TarDecoderBlueprint {
 
-	public CursorMapH<InputStream, Di<TarArchiveEntry, InputStream>> build( ) {
+	public static class Entry {
+		public TarArchiveEntry entry;
+		public InputStream is;
+	}
+	
+	public CursorMapH<InputStream, Entry> build( ) {
 		return TarDecoderBlueprint::decode;
 	}
 
-	private static Cursor<Di<TarArchiveEntry, InputStream>> decode(
+	private static Cursor<Entry> decode(
 			Hook hook,
 			InputStream is ) {
 		try {
@@ -28,28 +32,23 @@ public class TarDecoderBlueprint {
 					(TarArchiveInputStream) new ArchiveStreamFactory( )
 							.createArchiveInputStream( "tar", is );
 
-			return new Cursor<Di<TarArchiveEntry, InputStream>>( ) {
+			return new Cursor<Entry>( ) {
 
 				@Override
-				public Di<TarArchiveEntry, InputStream> next( )
+				public Entry next( )
 						throws PastTheEndException {
-					return new Di<TarArchiveEntry, InputStream>( ) {
-
-						@Override
-						public TarArchiveEntry front( ) {
-							try {
-								return (TarArchiveEntry) tis.getNextEntry( );
-							}
-							catch ( IOException t ) {
-								throw new RuntimeException( t );
-							}
+					Entry result = new Entry( );
+					try {
+						result.entry = (TarArchiveEntry) tis.getNextEntry( );
+						if (result.entry == null) {
+							throw PastTheEndException.neo;
 						}
-
-						@Override
-						public InputStream back( ) {
-							return tis;
-						};
-					};
+						result.is = tis;
+					}
+					catch ( IOException t ) {
+						throw new RuntimeException( t );
+					}
+					return result;
 				}
 			};
 		}
