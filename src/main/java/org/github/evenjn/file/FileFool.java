@@ -18,7 +18,6 @@
 package org.github.evenjn.file;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -28,13 +27,28 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.LinkedList;
 
-import org.github.evenjn.yarn.Hook;
+public final class FileFool {
 
-public class FileFool {
-
-	public static FileFool nu( ) {
-		return new FileFool( );
+	private Path root;
+	
+	public Path getRoot() {
+		return root;
 	}
+
+	private FileFool(Path path) {
+		if (path != null) {
+			this.root = path.toAbsolutePath( ).normalize( );
+		}
+	}
+
+	public static FileFool nu( Path path ) {
+		return new FileFool( path );
+	}
+	
+	public static FileFool nu( ) {
+		return new FileFool( null );
+	}
+
 
 	public boolean exists( Path path ) {
 		return Files.exists( path );
@@ -50,7 +64,9 @@ public class FileFool {
 				delete( param.path );
 			}
 			if ( !param.as_directory ) {
-				Files.createDirectories( param.path.getParent( ) );
+				if ( null != param.path.getParent( ) ) {
+					Files.createDirectories( param.path.getParent( ) );
+				}
 				Files.createFile( param.path );
 			}
 			else {
@@ -63,7 +79,7 @@ public class FileFool {
 		return param.path;
 	}
 
-	static void remove( Path path ) {
+	private void remove( Path path ) {
 
 		SimpleFileVisitor<Path> simpleFileVisitor = new SimpleFileVisitor<Path>( ) {
 
@@ -115,19 +131,18 @@ public class FileFool {
 	}
 
 	public void delete( Path path ) {
-		remove( path.normalize( ) );
+		if (root == null) {
+			throw new IllegalStateException( "This file fool is read-only." );
+		}
+		path = path.toAbsolutePath( ).normalize( );
+		if (! path.startsWith( root )) {
+			throw new IllegalStateException( "\n This file fool does not allow to write in this path:\n " + path.toString( ) + "\n Writable root is:\n " + root.toString( ) + "\n" );
+		}
+		remove( path );
 	}
 
 	public FileFoolElement open( Path path ) {
 		return new FileFoolElement( path );
-	}
-
-	public final static OutputStream eraseAndRewind( Hook hook,
-			Path p ) {
-		FileFool file = nu( );
-		return file.open(
-				file.create( file.mold( p ).eraseIfExists( ) ) )
-				.write( hook );
 	}
 
 	public Iterable<Path> find( Path directory, String glob_pattern ) {

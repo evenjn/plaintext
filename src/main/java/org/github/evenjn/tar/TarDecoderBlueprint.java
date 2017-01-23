@@ -39,11 +39,28 @@ public class TarDecoderBlueprint {
 						throws PastTheEndException {
 					Entry result = new Entry( );
 					try {
-						result.entry = (TarArchiveEntry) tis.getNextEntry( );
+						result.entry = (TarArchiveEntry) tis.getNextTarEntry( );
 						if (result.entry == null) {
 							throw PastTheEndException.neo;
 						}
-						result.is = tis;
+						
+						final long size = result.entry.getSize();
+						
+						result.is = new InputStream( ) {
+							
+							long left = size;
+							
+							@Override
+							public int read( )
+									throws IOException {
+								if (left == 0) {
+									return -1;
+								}
+								int result = tis.read(  );
+								left = left - 1;
+								return result;
+							}
+						};
 					}
 					catch ( IOException t ) {
 						throw new RuntimeException( t );

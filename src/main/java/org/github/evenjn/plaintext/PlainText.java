@@ -61,19 +61,15 @@ public class PlainText {
 		return cursable;
 	}
 
+	/* For safety reasons, this method does not erase/overwrite existing files.
+	 */
 	static public Consumer<String> fileWrite( Hook hook, String file ) {
-		boolean erase = true;
 		Charset cs = Charset.forName( "UTF-8" );
 		String delimiter = "\n";
 		Path path = Paths.get( file );
 		FileFool ff = FileFool.nu( );
 		if ( ff.exists( path ) ) {
-			if ( erase ) {
-				ff.delete( path );
-			}
-			else {
 				throw new IllegalStateException( "File exists: [" + file + "]" );
-			}
 		}
 		ff.create( ff.mold( path ) );
 		OutputStream os = ff.open( path ).write( hook );
