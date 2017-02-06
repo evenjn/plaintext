@@ -23,7 +23,7 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 
 import org.github.evenjn.yarn.Cursor;
-import org.github.evenjn.yarn.PastTheEndException;
+import org.github.evenjn.yarn.EndOfCursorException;
 
 class XmlCursor implements
 		Cursor<SuppressedXmlStreamElement> {
@@ -43,11 +43,11 @@ class XmlCursor implements
 
 	@Override
 	public SuppressedXmlStreamElement next( )
-			throws PastTheEndException {
+			throws EndOfCursorException {
 		if ( streamReader.hasNext( ) ) {
 			streamReader.next( );
 			return streamReader;
 		}
-		throw PastTheEndException.neo;
+		throw EndOfCursorException.neo();
 	}
 }

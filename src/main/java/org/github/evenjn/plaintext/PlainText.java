@@ -17,9 +17,11 @@
  */
 package org.github.evenjn.plaintext;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
@@ -44,6 +46,7 @@ public class PlainText {
 		return new LineWriterBlueprint( );
 	}
 
+	@Deprecated
 	static public Cursable<String> fileRead( String file ) {
 		Cursable<String> cursable = new Cursable<String>( ) {
 
@@ -55,21 +58,23 @@ public class PlainText {
 						.setCharset( Charset.forName( "UTF-8" ) )
 						.build( )
 						.get( hook, is );
-				return cursor ;
+				return cursor;
 			}
 		};
 		return cursable;
 	}
 
-	/* For safety reasons, this method does not erase/overwrite existing files.
+	/*
+	 * For safety reasons, this method does not erase/overwrite existing files.
 	 */
+	@Deprecated
 	static public Consumer<String> fileWrite( Hook hook, String file ) {
 		Charset cs = Charset.forName( "UTF-8" );
 		String delimiter = "\n";
 		Path path = Paths.get( file );
 		FileFool ff = FileFool.nu( );
 		if ( ff.exists( path ) ) {
-				throw new IllegalStateException( "File exists: [" + file + "]" );
+			throw new IllegalStateException( "File exists: [" + file + "]" );
 		}
 		ff.create( ff.mold( path ) );
 		OutputStream os = ff.open( path ).write( hook );
@@ -105,6 +110,25 @@ public class PlainText {
 			}
 		};
 	}
-
+	
+	public static boolean isDecodableAs( InputStream is, Charset cs ) {
+		try (
+			InputStreamReader isr = new InputStreamReader( is, cs );
+			BufferedReader r = new BufferedReader( isr ); ) {
+			for ( ;; ) {
+				int read = r.read( );
+				if ( read == -1 ) {
+					break;
+				}
+			}
+		}
+		catch ( java.nio.charset.MalformedInputException e ) {
+			return false;
+		}
+		catch ( IOException e ) {
+			throw new RuntimeException( e );
+		}
+		return true;
+	}
 
 }

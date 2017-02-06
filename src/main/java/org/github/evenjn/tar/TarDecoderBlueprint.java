@@ -10,7 +10,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.github.evenjn.yarn.Cursor;
 import org.github.evenjn.yarn.CursorMapH;
 import org.github.evenjn.yarn.Hook;
-import org.github.evenjn.yarn.PastTheEndException;
+import org.github.evenjn.yarn.EndOfCursorException;
 
 public class TarDecoderBlueprint {
 
@@ -36,12 +36,12 @@ public class TarDecoderBlueprint {
 
 				@Override
 				public Entry next( )
-						throws PastTheEndException {
+						throws EndOfCursorException {
 					Entry result = new Entry( );
 					try {
 						result.entry = (TarArchiveEntry) tis.getNextTarEntry( );
 						if (result.entry == null) {
-							throw PastTheEndException.neo;
+							throw EndOfCursorException.neo();
 						}
 						
 						final long size = result.entry.getSize();

@@ -29,7 +29,7 @@ import java.util.regex.Pattern;
 import org.github.evenjn.yarn.Cursor;
 import org.github.evenjn.yarn.CursorMapH;
 import org.github.evenjn.yarn.Hook;
-import org.github.evenjn.yarn.PastTheEndException;
+import org.github.evenjn.yarn.EndOfCursorException;
 
 public class LineReaderBlueprint {
 
@@ -77,7 +77,7 @@ public class LineReaderBlueprint {
 
 			@Override
 			public String next( )
-					throws PastTheEndException {
+					throws EndOfCursorException {
 				for ( ;; ) {
 					try {
 						boolean hasNext = scanner.hasNext( );
@@ -92,7 +92,7 @@ public class LineReaderBlueprint {
 							}
 							return next;
 						}
-						throw PastTheEndException.neo;
+						throw EndOfCursorException.neo();
 					}
 					catch ( IOException e ) {
 						throw new RuntimeException( e );

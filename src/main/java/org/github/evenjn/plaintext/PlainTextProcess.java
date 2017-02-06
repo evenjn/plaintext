@@ -25,7 +25,7 @@ import java.util.function.Supplier;
 
 import org.github.evenjn.yarn.AutoHook;
 import org.github.evenjn.yarn.Cursor;
-import org.github.evenjn.yarn.PastTheEndException;
+import org.github.evenjn.yarn.EndOfCursorException;
 
 public class PlainTextProcess {
 
@@ -85,7 +85,7 @@ public class PlainTextProcess {
 								err_putter.accept( next );
 							}
 						}
-						catch ( PastTheEndException e ) {
+						catch ( EndOfCursorException e ) {
 							break;
 						}
 					}
@@ -111,7 +111,7 @@ public class PlainTextProcess {
 								out_putter.accept( next );
 							}
 						}
-						catch ( PastTheEndException e ) {
+						catch ( EndOfCursorException e ) {
 							break;
 						}
 					}

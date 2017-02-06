@@ -17,6 +17,7 @@
  */
 package org.github.evenjn.plaintext;
 
+import java.nio.charset.Charset;
 import java.text.Normalizer;
 import java.text.Normalizer.Form;
 import java.util.Iterator;
@@ -157,6 +158,10 @@ public class Unicode {
 			return s.substring( 2 );
 		}
 		return s;
+	}
+	
+	public static boolean isCodepointEncodableInCharset(Integer c, Charset cs) {
+		return cs.newEncoder( ).canEncode( Unicode.string( c ) );
 	}
 
 }

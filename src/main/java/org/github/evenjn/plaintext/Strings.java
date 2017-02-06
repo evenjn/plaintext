@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
 import org.github.evenjn.yarn.ArrayMap;
 import org.github.evenjn.yarn.Cursor;
 import org.github.evenjn.yarn.CursorUnfold;
-import org.github.evenjn.yarn.PastTheEndException;
+import org.github.evenjn.yarn.EndOfCursorException;
 
 public class Strings {
 
@@ -67,11 +67,11 @@ public class Strings {
 
 					@Override
 					public String next( )
-							throws PastTheEndException {
+							throws EndOfCursorException {
 						boolean opening_delimiter_found =
 								opening_delimiter_matcher.find( frontier );
 						if ( !opening_delimiter_found )
-							throw PastTheEndException.neo;
+							throw EndOfCursorException.neo();
 						int opening_delimiter_end = opening_delimiter_matcher.end( );
 						boolean closing_delimiter_found =
 								closing_delimiter_matcher.find( opening_delimiter_end );
@@ -82,6 +82,18 @@ public class Strings {
 						frontier = closing_delimiter_matcher.end( );
 						return input.substring( opening_delimiter_end,
 								closing_delimiter_start );
+					}
+				};
+			}
+
+			@Override
+			public Cursor<String> end( ) {
+				return new Cursor<String>( ) {
+					
+					@Override
+					public String next( )
+							throws EndOfCursorException {
+						throw EndOfCursorException.neo();
 					}
 				};
 			}

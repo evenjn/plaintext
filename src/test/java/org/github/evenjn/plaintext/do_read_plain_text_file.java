@@ -25,7 +25,7 @@ import org.github.evenjn.bzip2.Bzip2;
 import org.github.evenjn.file.FileFool;
 import org.github.evenjn.yarn.AutoHook;
 import org.github.evenjn.yarn.Cursor;
-import org.github.evenjn.yarn.PastTheEndException;
+import org.github.evenjn.yarn.EndOfCursorException;
 
 public class do_read_plain_text_file {
 
@@ -38,7 +38,7 @@ public class do_read_plain_text_file {
 				try {
 					System.out.println( stream.next( ) );
 				}
-				catch ( PastTheEndException e ) {
+				catch ( EndOfCursorException e ) {
 					break;
 				}
 			}
@@ -51,7 +51,7 @@ public class do_read_plain_text_file {
 				try {
 					System.out.println( stream.next( ) );
 				}
-				catch ( PastTheEndException e ) {
+				catch ( EndOfCursorException e ) {
 					break;
 				}
 			}
