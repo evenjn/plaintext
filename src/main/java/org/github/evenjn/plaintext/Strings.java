@@ -17,6 +17,8 @@
  */
 package org.github.evenjn.plaintext;
 
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
@@ -24,8 +26,8 @@ import java.util.regex.Pattern;
 
 import org.github.evenjn.yarn.ArrayMap;
 import org.github.evenjn.yarn.Cursor;
-import org.github.evenjn.yarn.CursorUnfold;
 import org.github.evenjn.yarn.EndOfCursorException;
+import org.github.evenjn.yarn.IteratorMap;
 
 public class Strings {
 
@@ -50,18 +52,19 @@ public class Strings {
 		return sb.toString( );
 	}
 
-	public static CursorUnfold<String, String> extractor(
+	public static IteratorMap<String, String> extractor(
 			Pattern opening_delimiter,
 			Pattern closing_delimiter ) {
-		return new CursorUnfold<String, String>( ) {
+		return new IteratorMap<String, String>( ) {
 
 			@Override
-			public Cursor<String> next( String input ) {
+			public Iterator<String> get( String input ) {
+
 				final Matcher opening_delimiter_matcher =
 						opening_delimiter.matcher( input );
 				final Matcher closing_delimiter_matcher =
 						closing_delimiter.matcher( input );
-				return new Cursor<String>( ) {
+				Cursor<String> curs = new Cursor<String>( ) {
 
 					private int frontier;
 
@@ -84,22 +87,38 @@ public class Strings {
 								closing_delimiter_start );
 					}
 				};
-			}
-
-			@Override
-			public Cursor<String> end( ) {
-				return new Cursor<String>( ) {
-					
+				
+				return new Iterator<String>( ) {
+					String cached = null;
+					boolean is_cached = false;
+					boolean has_next = false;
 					@Override
-					public String next( )
-							throws EndOfCursorException {
-						throw EndOfCursorException.neo();
+					public boolean hasNext( ) {
+						if (!is_cached) {
+							is_cached = true;
+							try {
+								cached = curs.next( );
+								has_next = true;
+							}
+							catch ( EndOfCursorException e ) {
+								has_next = false;
+							}
+						}
+						return has_next;
+					}
+
+					@Override
+					public String next( ) {
+						if (hasNext( )) {
+							return cached;
+						}
+						throw new NoSuchElementException( );
 					}
 				};
 			}
 		};
 	}
-
+	
 	public static Predicate<String> matcher( Pattern pattern ) {
 		return new Predicate<String>( ) {
 
