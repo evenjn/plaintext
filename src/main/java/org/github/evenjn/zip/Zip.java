@@ -15,11 +15,11 @@
  * limitations under the License.
  * 
  */
-package org.github.evenjn.tar;
+package org.github.evenjn.zip;
 
-public class Tar {
+public class Zip {
 
-	public static TarDecoderBlueprint decoder( ) {
-		return new TarDecoderBlueprint( );
+	public static ZipDecoderBlueprint decoder( ) {
+		return new ZipDecoderBlueprint( );
 	}
 }

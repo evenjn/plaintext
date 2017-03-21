@@ -24,7 +24,6 @@ import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.github.evenjn.yarn.ArrayMap;
 import org.github.evenjn.yarn.Cursor;
 import org.github.evenjn.yarn.EndOfCursorException;
 import org.github.evenjn.yarn.IteratorMap;
@@ -141,14 +140,4 @@ public class Strings {
 
 	}
 
-	public static ArrayMap<String, String> splitter( Pattern pattern ) {
-		return new ArrayMap<String, String>( ) {
-
-			@Override
-			public String[] get( String input ) {
-				return pattern.split( input );
-			}
-		};
-
-	}
 }

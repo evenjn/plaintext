@@ -15,31 +15,31 @@
  * limitations under the License.
  * 
  */
-package org.github.evenjn.tar;
+package org.github.evenjn.zip;
 
 import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.github.evenjn.yarn.Cursor;
 import org.github.evenjn.yarn.CursorMapH;
-import org.github.evenjn.yarn.Hook;
 import org.github.evenjn.yarn.EndOfCursorException;
+import org.github.evenjn.yarn.Hook;
 
-public class TarDecoderBlueprint {
+public class ZipDecoderBlueprint {
 
 	public static class Entry {
 
-		public TarArchiveEntry entry;
+		public ZipArchiveEntry entry;
 
 		public InputStream is;
 	}
 
 	public CursorMapH<InputStream, Entry> build( ) {
-		return TarDecoderBlueprint::decode;
+		return ZipDecoderBlueprint::decode;
 	}
 
 	private static Cursor<Entry> decode(
@@ -47,9 +47,9 @@ public class TarDecoderBlueprint {
 			InputStream is ) {
 		try {
 
-			final TarArchiveInputStream tais = hook.hook(
-					(TarArchiveInputStream) new ArchiveStreamFactory( )
-							.createArchiveInputStream( "tar", is ) );
+			final ZipArchiveInputStream zais = hook.hook(
+					(ZipArchiveInputStream) new ArchiveStreamFactory( )
+							.createArchiveInputStream( "zip", is ) );
 
 			return new Cursor<Entry>( ) {
 
@@ -58,7 +58,7 @@ public class TarDecoderBlueprint {
 						throws EndOfCursorException {
 					Entry result = new Entry( );
 					try {
-						result.entry = (TarArchiveEntry) tais.getNextTarEntry( );
+						result.entry = (ZipArchiveEntry) zais.getNextZipEntry( );
 						if ( result.entry == null ) {
 							throw EndOfCursorException.neo( );
 						}
@@ -75,7 +75,7 @@ public class TarDecoderBlueprint {
 								if ( left == 0 ) {
 									return -1;
 								}
-								int result = tais.read( );
+								int result = zais.read( );
 								left = left - 1;
 								return result;
 							}
