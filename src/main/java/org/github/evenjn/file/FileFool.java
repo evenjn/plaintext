@@ -30,25 +30,32 @@ import java.util.LinkedList;
 public final class FileFool {
 
 	private Path root;
-	
-	public Path getRoot() {
+
+	public Path getRoot( ) {
 		return root;
 	}
 
 	private FileFool(Path path) {
-		if (path != null) {
+		if ( path != null ) {
 			this.root = path.toAbsolutePath( ).normalize( );
 		}
 	}
 
 	public static FileFool nu( Path path ) {
-		return new FileFool( path );
+		return nu( path, false );
 	}
-	
+
+	public static FileFool nu( Path path, boolean clear ) {
+		FileFool ff = new FileFool( path );
+		if ( clear ) {
+			ff.remove( path, path );
+		}
+		return ff;
+	}
+
 	public static FileFool nu( ) {
 		return new FileFool( null );
 	}
-
 
 	public boolean exists( Path path ) {
 		return Files.exists( path );
@@ -79,9 +86,9 @@ public final class FileFool {
 		return param.path;
 	}
 
-	private void remove( Path path ) {
-
-		SimpleFileVisitor<Path> simpleFileVisitor = new SimpleFileVisitor<Path>( ) {
+	private SimpleFileVisitor<Path>
+			createDeletingFileVisitor( Path except_this_directory ) {
+		return new SimpleFileVisitor<Path>( ) {
 
 			@Override
 			public FileVisitResult visitFile( Path file, BasicFileAttributes attrs ) {
@@ -108,11 +115,14 @@ public final class FileFool {
 			@Override
 			public FileVisitResult postVisitDirectory( Path dir, IOException exc ) {
 				if ( exc == null ) {
-					try {
-						Files.delete( dir );
-					}
-					catch ( IOException e ) {
-						new RuntimeException( e );
+					if ( except_this_directory == null
+							|| !except_this_directory.equals( dir ) ) {
+						try {
+							Files.delete( dir );
+						}
+						catch ( IOException e ) {
+							new RuntimeException( e );
+						}
 					}
 					return FileVisitResult.CONTINUE;
 				}
@@ -121,9 +131,12 @@ public final class FileFool {
 				}
 			}
 		};
+	}
 
+	private void remove( Path path, Path except_this_directory ) {
 		try {
-			Files.walkFileTree( path, simpleFileVisitor );
+			Files.walkFileTree( path,
+					createDeletingFileVisitor( except_this_directory ) );
 		}
 		catch ( IOException e ) {
 			throw new RuntimeException( e );
@@ -131,14 +144,17 @@ public final class FileFool {
 	}
 
 	public void delete( Path path ) {
-		if (root == null) {
+		if ( root == null ) {
 			throw new IllegalStateException( "This file fool is read-only." );
 		}
 		path = path.toAbsolutePath( ).normalize( );
-		if (! path.startsWith( root )) {
-			throw new IllegalStateException( "\n This file fool does not allow to write in this path:\n " + path.toString( ) + "\n Writable root is:\n " + root.toString( ) + "\n" );
+		if ( !path.startsWith( root ) ) {
+			throw new IllegalStateException(
+					"\n This file fool does not allow to write in this path:\n "
+							+ path.toString( ) + "\n Writable root is:\n " + root.toString( )
+							+ "\n" );
 		}
-		remove( path );
+		remove( path, null );
 	}
 
 	public FileFoolElement open( Path path ) {
