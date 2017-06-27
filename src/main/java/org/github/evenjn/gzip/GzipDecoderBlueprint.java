@@ -25,10 +25,10 @@ import org.apache.commons.compress.compressors.CompressorStreamFactory;
 import org.github.evenjn.yarn.FunctionH;
 import org.github.evenjn.yarn.Hook;
 
-public class GZipDecoderBlueprint {
+public class GzipDecoderBlueprint {
 
 	public FunctionH<InputStream, InputStream> build( ) {
-		return GZipDecoderBlueprint::decode;
+		return GzipDecoderBlueprint::decode;
 	}
 
 	private static InputStream decode( Hook hook, InputStream is ) {

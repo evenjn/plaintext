@@ -26,23 +26,16 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.github.evenjn.yarn.Cursor;
 import org.github.evenjn.yarn.CursorMapH;
-import org.github.evenjn.yarn.Hook;
 import org.github.evenjn.yarn.EndOfCursorException;
+import org.github.evenjn.yarn.Hook;
 
 public class TarDecoderBlueprint {
 
-	public static class Entry {
-
-		public TarArchiveEntry entry;
-
-		public InputStream is;
-	}
-
-	public CursorMapH<InputStream, Entry> build( ) {
+	public CursorMapH<InputStream, TarEntry> build( ) {
 		return TarDecoderBlueprint::decode;
 	}
 
-	private static Cursor<Entry> decode(
+	private static Cursor<TarEntry> decode(
 			Hook hook,
 			InputStream is ) {
 		try {
@@ -51,12 +44,12 @@ public class TarDecoderBlueprint {
 					(TarArchiveInputStream) new ArchiveStreamFactory( )
 							.createArchiveInputStream( "tar", is ) );
 
-			return new Cursor<Entry>( ) {
+			return new Cursor<TarEntry>( ) {
 
 				@Override
-				public Entry next( )
+				public TarEntry next( )
 						throws EndOfCursorException {
-					Entry result = new Entry( );
+					TarEntry result = new TarEntry( );
 					try {
 						result.entry = (TarArchiveEntry) tais.getNextTarEntry( );
 						if ( result.entry == null ) {

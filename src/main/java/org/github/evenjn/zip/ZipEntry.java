@@ -1,6 +1,6 @@
 /**
  *
- * Copyright 2016 Marco Trevisan
+ * Copyright 2017 Marco Trevisan
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,15 @@
  * limitations under the License.
  * 
  */
-package org.github.evenjn.gzip;
+package org.github.evenjn.zip;
 
-public class GZip {
+import java.io.InputStream;
 
-	public static GZipDecoderBlueprint decoder( ) {
-		return new GZipDecoderBlueprint( );
-	}
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+
+public class ZipEntry {
+
+	public ZipArchiveEntry entry;
+
+	public InputStream is;
 }

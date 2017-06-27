@@ -31,18 +31,11 @@ import org.github.evenjn.yarn.Hook;
 
 public class ZipDecoderBlueprint {
 
-	public static class Entry {
-
-		public ZipArchiveEntry entry;
-
-		public InputStream is;
-	}
-
-	public CursorMapH<InputStream, Entry> build( ) {
+	public CursorMapH<InputStream, ZipEntry> build( ) {
 		return ZipDecoderBlueprint::decode;
 	}
 
-	private static Cursor<Entry> decode(
+	private static Cursor<ZipEntry> decode(
 			Hook hook,
 			InputStream is ) {
 		try {
@@ -51,12 +44,12 @@ public class ZipDecoderBlueprint {
 					(ZipArchiveInputStream) new ArchiveStreamFactory( )
 							.createArchiveInputStream( "zip", is ) );
 
-			return new Cursor<Entry>( ) {
+			return new Cursor<ZipEntry>( ) {
 
 				@Override
-				public Entry next( )
+				public ZipEntry next( )
 						throws EndOfCursorException {
-					Entry result = new Entry( );
+					ZipEntry result = new ZipEntry( );
 					try {
 						result.entry = (ZipArchiveEntry) zais.getNextZipEntry( );
 						if ( result.entry == null ) {
