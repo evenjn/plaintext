@@ -17,22 +17,23 @@
  */
 package org.github.evenjn.plaintext;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import org.github.evenjn.bzip2.Bzip2;
-import org.github.evenjn.file.FileFool;
 import org.github.evenjn.yarn.AutoHook;
 import org.github.evenjn.yarn.Cursor;
 import org.github.evenjn.yarn.EndOfCursorException;
 
 public class do_read_plain_text_file {
 
-	public static void main( String[] args ) {
+	public static void main( String[] args ) throws IOException {
 		try ( AutoHook hook = new BasicAutoHook( ) ) {
 			Path path = Paths.get( "./src/test/resources/test.txt" );
-			InputStream is = FileFool.nu( ).open( path ).read( hook );
+			InputStream is = hook.hook( Files.newInputStream( path ) );
 			Cursor<String> stream = PlainText.reader( ).build( ).get( hook, is );
 			for ( ;; ) {
 				try {
@@ -44,7 +45,7 @@ public class do_read_plain_text_file {
 			}
 
 			path = Paths.get( "./src/test/resources/test.txt.bz2" );
-			is = FileFool.nu( ).open( path ).read( hook );
+			is = hook.hook( Files.newInputStream( path ) );
 			is = Bzip2.decoder( ).build( ).get( hook, is );
 			stream = PlainText.reader( ).build( ).get( hook, is );
 			for ( ;; ) {
