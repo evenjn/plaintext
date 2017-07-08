@@ -1,6 +1,6 @@
 /**
  *
- * Copyright 2016 Marco Trevisan
+ * Copyright 2017 Marco Trevisan
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -17,19 +17,20 @@
  */
 package org.github.evenjn.xml;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import org.github.evenjn.file.FileFool;
 import org.github.evenjn.yarn.Cursable;
 import org.github.evenjn.yarn.Cursor;
 import org.github.evenjn.yarn.Hook;
 
 public class Xml {
 
-	public static XmlReader reader( ) {
-		return new XmlReader( );
+	public static XmlDecoderBlueprint decoder( ) {
+		return new XmlDecoderBlueprint( );
 	}
 
 	static public Cursable<SuppressedXmlStreamElement> fileRead( String file ) {
@@ -38,8 +39,13 @@ public class Xml {
 
 			@Override
 			public Cursor<SuppressedXmlStreamElement> pull( Hook hook ) {
-				InputStream is = FileFool.nu( ).open( path ).read( hook );
-				return new XmlReader( ).get( hook, is );
+				try {
+					InputStream is = hook.hook( Files.newInputStream( path ) );
+					return new XmlDecoderBlueprint( ).build().get( hook, is );
+				}
+				catch ( IOException e ) {
+					throw new RuntimeException( e );
+				}
 			}
 		};
 	}

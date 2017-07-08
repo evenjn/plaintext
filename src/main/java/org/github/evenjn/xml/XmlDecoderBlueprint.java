@@ -1,6 +1,6 @@
 /**
  *
- * Copyright 2016 Marco Trevisan
+ * Copyright 2017 Marco Trevisan
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,20 +25,27 @@ import org.github.evenjn.yarn.Cursor;
 import org.github.evenjn.yarn.CursorMapH;
 import org.github.evenjn.yarn.Hook;
 
-public class XmlReader implements
-		CursorMapH<InputStream, SuppressedXmlStreamElement> {
+public class XmlDecoderBlueprint {
+
+	public CursorMapH<InputStream, SuppressedXmlStreamElement> build( ) {
+		Charset local_cs = cs;
+		return new CursorMapH<InputStream, SuppressedXmlStreamElement>( ) {
+
+			@Override
+			public Cursor<SuppressedXmlStreamElement> get( Hook h,
+					InputStream input ) {
+				return new XmlCursor(
+						h.hook( new InputStreamReader( input, local_cs ) ) );
+			}
+
+		};
+	}
 
 	private Charset cs = Charset.forName( "UTF-8" );
 
-	public XmlReader setCharset( Charset cs ) {
+	public XmlDecoderBlueprint setCharset( Charset cs ) {
 		this.cs = cs;
 		return this;
 	}
 
-	@Override
-	public Cursor<SuppressedXmlStreamElement> get( Hook hook,
-			InputStream input ) {
-		InputStreamReader isr = hook.hook( new InputStreamReader( input, cs ) );
-		return new XmlCursor( isr );
-	}
 }

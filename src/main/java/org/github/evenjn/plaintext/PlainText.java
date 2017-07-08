@@ -1,6 +1,6 @@
 /**
  *
- * Copyright 2016 Marco Trevisan
+ * Copyright 2017 Marco Trevisan
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,11 +27,11 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.function.Consumer;
 
-import org.github.evenjn.file.FileFool;
 import org.github.evenjn.yarn.Cursable;
 import org.github.evenjn.yarn.Cursor;
 import org.github.evenjn.yarn.Hook;
@@ -46,19 +46,23 @@ public class PlainText {
 		return new LineWriterBlueprint( );
 	}
 
-	@Deprecated
-	static public Cursable<String> fileRead( String file ) {
+	public static Cursable<String> fileRead( String file ) {
+		Path path = Paths.get( file );
 		Cursable<String> cursable = new Cursable<String>( ) {
 
 			@Override
 			public Cursor<String> pull( Hook hook ) {
-				InputStream is = FileFool.nu( ).open( Paths.get( file ) ).read( hook );
-				Cursor<String> cursor = PlainText
-						.reader( )
-						.setCharset( Charset.forName( "UTF-8" ) )
-						.build( )
-						.get( hook, is );
-				return cursor;
+				try {
+					InputStream is = hook.hook( Files.newInputStream( path ) );
+					Cursor<String> cursor = PlainText
+							.reader( )
+							.build( )
+							.get( hook, is );
+					return cursor;
+				}
+				catch ( IOException e ) {
+					throw new RuntimeException( e );
+				}
 			}
 		};
 		return cursable;
@@ -66,20 +70,14 @@ public class PlainText {
 
 	/*
 	 * For safety reasons, this method does not erase/overwrite existing files.
+	 * 
+	 * @Deprecated static public Consumer<String> fileWrite( Hook hook, String
+	 * file ) { Charset cs = Charset.forName( "UTF-8" ); String delimiter = "\n";
+	 * Path path = Paths.get( file ); FileFool ff = FileFool.nu( ); if (
+	 * ff.exists( path ) ) { throw new IllegalStateException( "File exists: [" +
+	 * file + "]" ); } ff.create( ff.mold( path ) ); OutputStream os = ff.open(
+	 * path ).write( hook ); return write( hook, os, cs, delimiter, true ); }
 	 */
-	@Deprecated
-	static public Consumer<String> fileWrite( Hook hook, String file ) {
-		Charset cs = Charset.forName( "UTF-8" );
-		String delimiter = "\n";
-		Path path = Paths.get( file );
-		FileFool ff = FileFool.nu( );
-		if ( ff.exists( path ) ) {
-			throw new IllegalStateException( "File exists: [" + file + "]" );
-		}
-		ff.create( ff.mold( path ) );
-		OutputStream os = ff.open( path ).write( hook );
-		return write( hook, os, cs, delimiter, true );
-	}
 
 	static Consumer<String> write(
 			Hook hook,
@@ -110,7 +108,7 @@ public class PlainText {
 			}
 		};
 	}
-	
+
 	public static boolean isDecodableAs( InputStream is, Charset cs ) {
 		try (
 			InputStreamReader isr = new InputStreamReader( is, cs );
